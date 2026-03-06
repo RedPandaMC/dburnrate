@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="100%"
+   height="100%"
+   viewBox="0 0 200 200"
+   version="1.1"
+   id="svg1"
+   xml:space="preserve"
+   xmlns="http://www.w3.org/2000/svg">
+  <defs id="defs1" />
+
+  <!-- White background -->
+  <rect width="200" height="200" fill="white" />
+
+  <!--
+    Symmetrical fire icon.
+    Axis of symmetry: x=100 (canvas center).
+    Outer box: left=72.54, right=127.46 (width=54.92), top=10, bottom=90.
+    Left side uses original left coords mirrored around x=100.
+    Inner hole also mirrored around x=100.
+    scale(3.5) applied via viewBox sizing — path is already in 200x200 space.
+  -->
+  <g id="logo-group" transform="translate(100, 100) scale(3.667) translate(-98.710254, -96.24)">
+    <path
+       id="fire-icon"
+       style="fill:#c32824"
+       d="
+         M 70.433944 69.007157
+         L 70.433944 123.4798
+         L 94.250578 123.4798
+         L 81.369194 112.47686
+         C 81.369194 112.47686 82.15018 108.83309 81.914897 106.5506
+         C 81.6818 104.28933 80.01062 99.163973 80.01062 99.163973
+         L 88.198751 99.056486
+         L 98.710254 78.284627
+         L 109.221757 99.056486
+         L 117.410048 99.163973
+         C 117.410048 99.163973 115.738868 104.28933 115.505611 106.5506
+         C 115.270328 108.83309 116.051314 112.47686 116.051314 112.47686
+         L 103.169930 123.4798
+         L 126.986564 123.4798
+         L 126.986564 69.007157
+         L 70.433944 69.007157
+         Z
+         M 98.710254 99.992346
+         L 92.755062 111.90325
+         C 92.755062 111.90325 97.133438 113.27573 99.070447 113.2241
+         C 101.455647 113.1605 104.953797 111.99937 104.953797 111.99937
+         L 98.710254 99.992346
+         Z
+       " />
+  </g>
+
+  <!-- Text placeholder for future use -->
+  <!-- <text id="logo-text" x="100" y="170" text-anchor="middle" font-size="14" font-weight="bold" fill="#333333">Your Text Here</text> -->
+</svg>
