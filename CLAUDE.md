@@ -58,6 +58,12 @@ This repo uses **two-role parallel coding**:
 - Tasks with `blocked_by: [task-id]` must wait
 - Never modify a file another in-progress task owns (check `context.files`)
 
+### Task file lifecycle (MANDATORY)
+- Active tasks: `tasks/<id>.md` (status: todo | in-progress | blocked)
+- Completed tasks: rename to `tasks/<id>.md.completed` — **never delete, always rename**
+- When marking a task done, the planner renames the file: `mv tasks/<id>.md tasks/<id>.md.completed`
+- `ls tasks/*.md` should show only actionable tasks; `ls tasks/*.md.completed` shows history
+
 ---
 
 ## Code Standards (non-negotiable)
@@ -91,12 +97,8 @@ Critical research findings (from RESEARCH.md):
 
 ## Current Priority Order
 
-Per FUTURE_TODOS.md Phase 1 (do this before anything else):
-1. Run `uv run pytest -m unit -v` and fix all failures
-2. Run `uv run ruff check src/ tests/` and fix all lint errors
-3. Add missing type hints and docstrings
-
-Do NOT start Phase 2 (system tables) until Phase 1 is clean.
+Phases 1–3 complete. Phase 4 (Delta + EXPLAIN wired into CLI) is next.
+See `tasks/*.md` for active tasks, `tasks/*.md.completed` for history.
 
 ---
 
