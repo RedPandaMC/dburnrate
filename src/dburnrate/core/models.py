@@ -1,5 +1,6 @@
 """Pydantic models for dburnrate."""
 
+from decimal import Decimal
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict
@@ -62,3 +63,49 @@ class ClusterRecommendation(BaseModel):
     estimated_savings_pct: float
     confidence: Literal["low", "medium", "high"]
     reason: str
+
+
+class UsageRecord(BaseModel):
+    """A single DBU usage record from system.billing.usage."""
+
+    account_id: str
+    workspace_id: str
+    sku_name: str
+    cloud: str
+    usage_start_time: str
+    usage_end_time: str
+    usage_quantity: Decimal
+    usage_unit: str
+    cluster_id: str | None = None
+    warehouse_id: str | None = None
+
+
+class QueryRecord(BaseModel):
+    """A query execution record from system.query.history."""
+
+    statement_id: str
+    statement_text: str
+    statement_type: str | None = None
+    start_time: str
+    end_time: str | None = None
+    execution_duration_ms: int | None = None
+    compilation_duration_ms: int | None = None
+    read_bytes: int | None = None
+    read_rows: int | None = None
+    produced_rows: int | None = None
+    written_bytes: int | None = None
+    total_task_duration_ms: int | None = None
+    warehouse_id: str | None = None
+    cluster_id: str | None = None
+    status: str = ""
+    error_message: str | None = None
+
+
+class DeltaTableInfo(BaseModel):
+    """Metadata extracted from a Delta Lake table."""
+
+    location: str
+    total_size_bytes: int
+    num_files: int
+    num_records: int | None = None
+    partition_columns: list[str] = []

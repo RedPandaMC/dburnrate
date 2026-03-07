@@ -6,10 +6,10 @@
 
 ```yaml
 id: p2-02-billing-integration
-status: todo
+status: done
 phase: 2
 priority: high
-agent: ~
+agent: claude-sonnet-4-6
 blocked_by: [p2-01-databricks-connection]
 created_by: planner
 ```
@@ -94,7 +94,20 @@ All checks passed.
 
 ### Result
 
-[Executor: fill in after completion]
+Implemented billing system table integration (p2-02).
+
+Files created/modified:
+- `src/dburnrate/core/models.py` — added `UsageRecord` Pydantic model and `Decimal` import
+- `src/dburnrate/tables/billing.py` — new module with `get_historical_usage()`, `get_live_prices()`, `_coerce_usage_row()`
+- `tests/unit/tables/test_billing.py` — 13 unit tests covering all acceptance criteria
+- `tests/unit/tables/test_compute.py` — fixed pre-existing import sort lint error (I001)
+- `tests/unit/tables/test_queries.py` — fixed pre-existing import sort lint error (I001)
+
+Test results:
+- `uv run pytest -m unit -v tests/unit/tables/test_billing.py`: 13 passed
+- `uv run pytest -m unit -v`: 192 passed (was 147 before this task; difference due to other p2 tasks already merged)
+- `uv run ruff check src/ tests/`: All checks passed
+- `uv run ruff format --check src/ tests/`: 43 files already formatted
 
 ### Blocked reason
 
