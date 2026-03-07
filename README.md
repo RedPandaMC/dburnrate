@@ -1,14 +1,16 @@
 <div align="center">
 
-# dburnrate 🔥
+<img src="public/logo_text.svg" alt="dburnrate" width="400">
 
 **Pre-execution cost estimation for Databricks**
 
 Know what a query costs _before_ you run it.
 
-[![Tests](https://img.shields.io/badge/tests-263%20passing-brightgreen)](#)
-[![Python](https://img.shields.io/badge/python-3.12-blue)](#)
-[![Ruff](https://img.shields.io/badge/lint-ruff-purple)](#)
+[![Tests](https://img.shields.io/badge/tests-263%20passing-brightgreen)](https://github.com/anomalyco/dburnrate/actions)
+[![Python](https://img.shields.io/badge/python-3.12-blue)](https://www.python.org/)
+[![Ruff](https://img.shields.io/badge/lint-ruff-purple)](https://github.com/astral-sh/ruff)
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue)](LICENSE)
+[![PyPI](https://img.shields.io/badge/pypi-coming%20soon-orange)](https://pypi.org)
 
 </div>
 
@@ -140,10 +142,6 @@ uv run ruff format src/ tests/    # format
 uv run bandit -c pyproject.toml -r src/  # security
 uv run dburnrate --help
 ```
-
-### Agentic workflow
-
-This repo uses a planner/executor pattern for parallel AI-assisted development. See [`CLAUDE.md`](CLAUDE.md) for rules and [`tasks/`](tasks/) for the task queue (`*.md` = active, `*.md.completed` = done).
 
 ---
 
