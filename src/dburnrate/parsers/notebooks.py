@@ -1,3 +1,5 @@
+"""Notebook parsing for Jupyter and DBC formats."""
+
 import json
 import zipfile
 from dataclasses import dataclass
@@ -7,12 +9,15 @@ from typing import Literal
 
 @dataclass
 class NotebookCell:
+    """A cell from a notebook."""
+
     language: Literal["sql", "python", "scala", "markdown"]
     source: str
     cell_index: int
 
 
 def parse_notebook(path: Path) -> list[NotebookCell]:
+    """Parse a Jupyter notebook (.ipynb) file."""
     with open(path) as f:
         nb = json.load(f)
 
@@ -38,6 +43,7 @@ def parse_notebook(path: Path) -> list[NotebookCell]:
 
 
 def parse_dbc(path: Path) -> list[NotebookCell]:
+    """Parse a Databricks archive (.dbc) file."""
     cells = []
 
     with zipfile.ZipFile(path) as zf:
@@ -64,6 +70,7 @@ def parse_dbc(path: Path) -> list[NotebookCell]:
 
 
 def _detect_language(metadata: dict, source: str) -> str:
+    """Detect language from metadata or magic commands."""
     if source.lstrip().startswith("%sql"):
         return "sql"
     elif source.lstrip().startswith("%python"):
@@ -81,6 +88,7 @@ def _detect_language(metadata: dict, source: str) -> str:
 
 
 def _detect_language_from_dbc(cmd: dict) -> str:
+    """Detect language from DBC command."""
     language = cmd.get("language", "").lower()
     if language == "sql":
         return "sql"

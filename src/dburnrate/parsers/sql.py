@@ -1,3 +1,5 @@
+"""SQL parsing for Databricks using sqlglot."""
+
 from .._compat import require
 from ..core.exceptions import ParseError
 from ..core.models import OperationInfo, QueryProfile
@@ -19,6 +21,7 @@ OPERATION_WEIGHTS = {
 
 
 def parse_sql(sql: str, dialect: str = "databricks"):
+    """Parse SQL string into AST."""
     require("sqlglot")
     from sqlglot import parse_one
 
@@ -32,6 +35,7 @@ def parse_sql(sql: str, dialect: str = "databricks"):
 
 
 def extract_tables(sql: str, dialect: str = "databricks") -> list[str]:
+    """Extract table references from SQL."""
     require("sqlglot")
     from sqlglot import exp
 
@@ -49,6 +53,7 @@ def extract_tables(sql: str, dialect: str = "databricks") -> list[str]:
 
 
 def detect_operations(sql: str, dialect: str = "databricks") -> list[OperationInfo]:
+    """Detect cost-affecting operations in SQL."""
     require("sqlglot")
     from sqlglot import exp
 
@@ -90,11 +95,13 @@ def detect_operations(sql: str, dialect: str = "databricks") -> list[OperationIn
 
 
 def compute_complexity(sql: str, dialect: str = "databricks") -> float:
+    """Compute complexity score from operations."""
     ops = detect_operations(sql, dialect)
     return sum(op.weight for op in ops)
 
 
 def analyze_query(sql: str, dialect: str = "databricks") -> QueryProfile:
+    """Perform full query analysis."""
     ops = detect_operations(sql, dialect)
     tables = extract_tables(sql, dialect)
     complexity = compute_complexity(sql, dialect)

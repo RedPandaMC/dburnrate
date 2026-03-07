@@ -1,5 +1,3 @@
-
-
 def require(extra: str) -> None:
     """Raise ImportError if an optional dependency is not installed."""
     try:

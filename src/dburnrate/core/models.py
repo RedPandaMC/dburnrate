@@ -1,15 +1,21 @@
+"""Pydantic models for dburnrate."""
+
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict
 
 
 class OperationInfo(BaseModel):
+    """Information about a database operation."""
+
     name: str
     kind: str
     weight: float
 
 
 class QueryProfile(BaseModel):
+    """Profile of a SQL query with complexity analysis."""
+
     sql: str
     dialect: str = "databricks"
     operations: list[OperationInfo] = []
@@ -18,6 +24,8 @@ class QueryProfile(BaseModel):
 
 
 class ClusterConfig(BaseModel):
+    """Databricks cluster configuration."""
+
     model_config = ConfigDict(frozen=True)
     instance_type: str = "Standard_DS3_v2"
     num_workers: int = 2
@@ -26,6 +34,8 @@ class ClusterConfig(BaseModel):
 
 
 class PricingInfo(BaseModel):
+    """Pricing information for a SKU."""
+
     sku_name: str
     dbu_rate: float
     cloud: str = "AZURE"
@@ -33,6 +43,8 @@ class PricingInfo(BaseModel):
 
 
 class CostEstimate(BaseModel):
+    """Cost estimate for a query or workload."""
+
     estimated_dbu: float
     estimated_cost_usd: float | None = None
     estimated_cost_eur: float | None = None
@@ -42,6 +54,8 @@ class CostEstimate(BaseModel):
 
 
 class ClusterRecommendation(BaseModel):
+    """Recommendation for cluster optimization."""
+
     current_config: ClusterConfig
     recommended_config: ClusterConfig
     bottleneck: list[str] = []

@@ -1,3 +1,5 @@
+"""Pricing utilities for Azure Databricks."""
+
 from decimal import Decimal
 
 from .exceptions import PricingError
@@ -30,6 +32,7 @@ PHOTON_MULTIPLIER_AZURE = Decimal("2.5")
 
 
 def get_dbu_rate(sku_name: str) -> Decimal:
+    """Get DBU rate for a SKU."""
     rate = AZURE_DBU_RATES.get(sku_name.upper())
     if rate is None:
         raise PricingError(f"Unknown SKU: {sku_name}")
@@ -37,15 +40,18 @@ def get_dbu_rate(sku_name: str) -> Decimal:
 
 
 def compute_cost_usd(dbu: float, sku_name: str) -> Decimal:
+    """Compute cost in USD from DBU and SKU."""
     rate = get_dbu_rate(sku_name)
     return Decimal(str(dbu)) * rate
 
 
 def apply_photon(dbu: Decimal, enabled: bool) -> Decimal:
+    """Apply Photon multiplier to DBU."""
     if not enabled:
         return dbu
     return dbu * PHOTON_MULTIPLIER_AZURE
 
 
 def usd_to_eur(usd_amount: Decimal, rate: Decimal = Decimal("0.92")) -> Decimal:
+    """Convert USD to EUR."""
     return usd_amount * rate
