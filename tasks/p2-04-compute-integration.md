@@ -6,10 +6,10 @@
 
 ```yaml
 id: p2-04-compute-integration
-status: todo
+status: done
 phase: 2
 priority: medium
-agent: ~
+agent: claude-sonnet-4-6
 blocked_by: [p2-01-databricks-connection]
 created_by: planner
 ```
@@ -91,8 +91,15 @@ All checks passed.
 
 ### Result
 
-[Executor: fill in after completion]
+Implemented `src/dburnrate/tables/compute.py` with three public functions:
+- `get_node_types(client, warehouse_id) -> dict[str, float]`: queries `system.compute.node_types`, returns node_type_id → dbu_per_hour mapping
+- `get_cluster_config(client, cluster_id, warehouse_id) -> ClusterConfig`: queries `system.compute.clusters`, maps to existing `ClusterConfig` model (fields: `instance_type`, `num_workers`, `dbu_per_hour`). Raises `DatabricksQueryError` if cluster not found.
+- `get_node_timeline(client, cluster_id, start_time, end_time, warehouse_id) -> list[dict]`: queries `system.compute.node_timeline` for a time range.
+
+`ClusterConfig` has no `cluster_id`, `cluster_name`, or `spark_version` fields; mapped `node_type_id` → `instance_type` and `dbu_per_hour` from node_types lookup.
+
+Created `tests/unit/tables/test_compute.py` with 15 unit tests (all pass). Full suite: 192 passed. Lint and format: clean.
 
 ### Blocked reason
 
-[If blocked, explain here]
+N/A
