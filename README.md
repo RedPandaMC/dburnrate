@@ -1,6 +1,9 @@
 <div align="center">
 
-<img src="public/logo_text.svg" alt="dburnrate" width="400">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="public/logo_text_dark.svg">
+  <img src="public/logo_text.svg" alt="dburnrate" width="400">
+</picture>
 
 **Pre-execution cost estimation for Databricks**
 
@@ -155,4 +158,4 @@ uv run dburnrate --help
 | 4 | 🔄 | Wire hybrid into CLI, AWS/GCP pricing, Delta scan sizes |
 | 5 | ⏳ | End-to-end fingerprint lookup, production hardening |
 
-Full roadmap in [`FUTURE_TODOS.md`](FUTURE_TODOS.md).
+Full roadmap in [`DESIGN.md`](DESIGN.md).
