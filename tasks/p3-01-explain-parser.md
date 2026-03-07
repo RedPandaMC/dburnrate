@@ -6,10 +6,10 @@
 
 ```yaml
 id: p3-01-explain-parser
-status: todo
+status: done
 phase: 3
 priority: high
-agent: ~        # Claude/Sonnet — regex + AST parsing, structured output
+agent: claude-sonnet-4-6
 blocked_by: [p3-00-research-explain-cost]
 created_by: planner
 ```
@@ -98,8 +98,27 @@ All checks passed.
 
 ### Result
 
-[Executor: fill in after completion]
+Implemented successfully by claude-sonnet-4-6.
+
+Files created/modified:
+- `src/dburnrate/core/models.py` — added `ExplainPlan` Pydantic model (with `operations: list[OperationInfo]` field per spec Section 7)
+- `src/dburnrate/parsers/explain.py` — full parser implementing `parse_explain_cost(text: str) -> ExplainPlan`
+- `tests/unit/parsers/test_explain.py` — 34 unit tests across 6 test classes
+
+Verification results:
+- `uv run pytest -m unit -v tests/unit/parsers/test_explain.py` → 34 passed
+- `uv run pytest -m unit -v` → 244 passed (all passing)
+- `uv run ruff check src/ tests/` → All checks passed
+- `uv run ruff format --check src/ tests/` → All files formatted
+
+Key implementation notes:
+- Parser uses `docs/explain-cost-schema.md` regex patterns exactly
+- `_SECTION_PATTERN` with `re.DOTALL` extracts only the Optimized Logical Plan section
+- `stats_complete=True` only when all Stats blocks have `rowCount` AND at least one exists
+- `estimated_rows` is taken from the first `rowCount` seen in the optimized section
+- Row unit `B` = billions (1e9), distinct from size unit `B` = bytes
+- Scientific notation rowCount (e.g. `1.62E+6`) handled via Python `float()` naturally
 
 ### Blocked reason
 
-[If blocked, explain here]
+N/A — completed successfully.
