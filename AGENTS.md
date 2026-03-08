@@ -182,6 +182,45 @@ Example: `feat: Add EXPLAIN COST parsing for cold-start estimation`
 
 ```
 src/dburnrate/
+├── __init__.py           # Version info + top-level API
+├── _compat.py            # Optional import helpers
+├── cli/                  # Typer CLI
+│   └── main.py
+├── core/                 # Models, config, pricing
+│   ├── models.py         # Pydantic models
+│   ├── config.py         # Settings
+│   ├── pricing.py        # DBU rate lookups (Azure/AWS/GCP)
+│   ├── exchange.py       # Currency conversion
+│   ├── exceptions.py     # Custom exceptions
+│   ├── protocols.py      # Protocol classes (FIXME: remove shadow classes)
+│   └── table_registry.py # Enterprise table path config (Phase 4C)
+├── parsers/              # Code analysis
+│   ├── sql.py            # SQL parsing (sqlglot)
+│   ├── pyspark.py        # AST analysis
+│   ├── notebooks.py      # .ipynb + .dbc
+│   ├── antipatterns.py   # Detection rules (FIXME: use AST, not string matching)
+│   ├── explain.py        # EXPLAIN COST parser (Phase 3)
+│   └── delta.py          # Delta _delta_log reader (Phase 3)
+├── estimators/           # Cost estimation
+│   ├── static.py         # Complexity-based estimation (FIXME: quadratic formula)
+│   ├── hybrid.py         # EXPLAIN + history blend (FIXME: phantom price, constants)
+│   ├── pipeline.py       # EstimationPipeline orchestrator (NEW - Phase 4B)
+│   └── whatif.py         # Scenario modeling
+├── tables/               # Databricks system tables (Phase 2)
+│   ├── connection.py     # REST API client (FIXME: add input sanitization)
+│   ├── billing.py        # system.billing.*
+│   ├── queries.py        # system.query.history + fingerprinting
+│   ├── compute.py        # system.compute.*
+│   └── attribution.py    # Cost attribution (NEW - Phase 4B)
+├── runtime/              # Dual-mode runtime (Phase 4C)
+│   ├── __init__.py       # RuntimeBackend Protocol
+│   ├── spark_backend.py  # In-cluster execution
+│   ├── rest_backend.py   # External REST execution
+│   └── detect.py         # auto_backend() detection
+├── forecast/             # Prophet forecasting (post-MVP) (FIXME: empty stub)
+└── py.typed              # PEP 561 marker
+```
+src/dburnrate/
 ├── __init__.py           # Version info
 ├── _compat.py            # Optional import helpers
 ├── cli/                  # Typer CLI
@@ -222,19 +261,19 @@ src/dburnrate/
 - Phases 1–3 complete: 263 unit tests pass, 0 lint errors
 - System tables client, billing, query history, compute: implemented (Phase 2)
 - EXPLAIN COST parser, Delta log reader, hybrid estimator: implemented (Phase 3)
-- **Critical bugs identified (March 2026 audit):** quadratic formula in static estimator, phantom $0.20/DBU price, EXPLAIN constants 7,900× too high, SQL injection in table queries, string-matching anti-pattern detector, shadowed classes in protocols.py
-- Phase 4 tasks in `tasks/p4-*.md`: wire CLI, Delta scan sizes, fingerprint lookup, AWS/GCP pricing
-- **Missing:** `tables/attribution.py`, `EstimationPipeline` orchestrator, `TableRegistry`, `RuntimeBackend`
+- **Critical bugs identified (March 2026 audit):** quadratic formula in static estimator, phantom $0.20/DBU price, EXPLAIN constants 7,900× too high, SQL injection in table queries, string-matching anti-pattern detector, shadowed classes in protocols.py, empty forecast/prophet.py stub
+- Phase 4A tasks in `tasks/p4a-*.md`: fix 11 critical bugs before any CLI wiring
+- Phase 4B tasks: wire EstimationPipeline, create attribution.py, add AWS/GCP pricing
+- **Missing:** `tables/attribution.py`, `EstimationPipeline` orchestrator, `TableRegistry`, `RuntimeBackend`, benchmark dataset
 
 ### Priority Order
 
-1. **Phase 4A** (next): Fix 7 critical bugs before any CLI wiring — see DESIGN.md §"Phase 4A: Critical Bug Fixes"
-2. **Phase 4B** (active): Wire `EstimationPipeline` into CLI, implement attribution, AWS/GCP pricing
-3. **Phase 4C**: Enterprise support: `TableRegistry` + `RuntimeBackend`
-4. **Phase 4D**: Ship `dburnrate lint` as standalone (ready today, 2 days effort)
-5. **Phase 5**: Production hardening (error handling, caching, observability, multi-cloud VM pricing)
-6. **Phase 6**: ML cost models (requires calibration data from 4B)
-7. **v0.2+**: Notebook aggregation, batch analysis, cost regression, CI/CD gates
+1. **Phase 4** (active): Fix critical mathematical bugs, SQL injections, and implement `TableRegistry` + `RuntimeBackend` so we can run natively.
+2. **Phase 5** (NEW CORE): Pre-Orchestration Job Cost Projection (Parse DABs + historical `lakeflow` baselines).
+3. **Phase 6**: CI/CD Cost Guardrails (Budgets, Regression, Drift).
+4. **Phase 7**: Wire remaining Query-Level EXPLAIN features.
+5. **Phase 8**: Production hardening (error handling, caching, observability).
+6. **Phase 9**: ML cost models.
 
 ---
 

@@ -20,14 +20,12 @@
 | 1 | ✅ Done | Tests, lint, docstrings | `tasks/p1-*.md.completed` |
 | 2 | ✅ Done | Databricks system table client (billing, query history, compute) | `tasks/p2-*.md.completed` |
 | 3 | ✅ Done | EXPLAIN COST parser, Delta log reader, hybrid estimator | `tasks/p3-*.md.completed` |
-| 4A | 🔄 Active | Fix critical bugs (quadratic formula, phantom price, SQL injection, SKU inference) | `tasks/p4a-*.md` |
-| 4B | 🔄 Active | Wire hybrid pipeline into CLI + calibration research | `tasks/p4-*.md` |
-| 4C | ⏳ Planned | Enterprise support: TableRegistry + RuntimeBackend | — |
-| 4D | 🟢 Ready | Ship `dburnrate lint` as standalone feature | — |
-| 5 | ⏳ Planned | Production hardening (error handling, caching, observability) + multi-cloud | `tasks/p5-*.md` |
-| 6 | ⏳ Planned | ML cost bucket classification (requires calibration data) | `tasks/p6-*.md` |
-| v0.2 | ⏳ Deferred | Notebook aggregation, compute advisor, cost regression detection | — |
-| v0.3 | ⏳ Deferred | CI/CD gates, DABs integration, forecasting | — |
+| 4 | 🔄 Active | Databricks-Native Foundation & Critical Fixes | `tasks/p4a-*.md` |
+| 5 | ⏳ Planned | Pre-Orchestration Job Cost Projection (Static + Historical) | `tasks/p5-*.md` |
+| 6 | ⏳ Planned | CI/CD Guardrails (Budgets, Regression, Drift) | `tasks/p6-*.md` |
+| 7 | ⏳ Planned | Query-Level Estimation Wiring | `tasks/p7-*.md` |
+| 8 | ⏳ Planned | Production Hardening | `tasks/p8-*.md` |
+| 9 | ⏳ Planned | ML Cost Models | `tasks/p9-*.md` |
 
 **Test count**: 263 passing | **Lint**: 0 errors | **Security**: bandit clean
 
@@ -73,6 +71,15 @@ All queries use f-string interpolation. Sanitize or parameterize all cluster_id/
 ### Bug 8: SKU Inference Misclassifies Compute (estimators/static.py)
 String-matching on instance type misclassifies SQL Warehouses, serverless, DLT. SKU must be explicit.
 
+### Bug 9: Missing tables/attribution.py
+Referenced in DESIGN.md but doesn't exist. Required for calibration, "last time this cost $X" signal, and ML training data.
+
+### Bug 10: forecast/prophet.py Is Empty Stub
+File exists but contains no real implementation.
+
+### Bug 11: No Graceful Degradation in CLI
+If sqlglot isn't installed, `dburnrate estimate "SELECT ..."` crashes with ImportError instead of falling back or suggesting `uv sync --extra sql`.
+
 ## Architecture Gaps
 
 ### Gap 1: No Estimation Pipeline Orchestrator
@@ -93,6 +100,12 @@ For classic clusters (Jobs, All-Purpose, DLT) the Azure VM bill is separate. DS4
 
 ### Gap 5: No Top-Level Python API
 `import dburnrate; dburnrate.estimate("SELECT ...")` fails. Only entry point is CLI.
+
+### Gap 6: forecast/prophet.py Is Empty Stub
+File exists but contains no real implementation, implying functionality that doesn't exist.
+
+### Gap 7: No Graceful Degradation in CLI
+If sqlglot isn't installed, `dburnrate estimate "SELECT ..."` crashes with ImportError instead of falling back or suggesting `uv sync --extra sql`.
 
 ## Enterprise Support: TableRegistry
 
@@ -702,265 +715,69 @@ def _require(module: str, extra: str):
 
 ## Phase 1: Foundation & Validation ✅ COMPLETE
 
-### 1.1 Run and Fix Tests ✅
-- [x] Run existing tests: `uv run pytest -m unit -v`
-- [x] Run linting: `uv run ruff check src/ tests/`
-- [x] Run formatting check: `uv run ruff format --check src/ tests/`
-- [x] Fix all linting/type errors
-- [x] Add return type hints to all functions
-- [x] Add missing docstrings
-- [x] Run security audit: `uv run bandit -c pyproject.toml -r src/`
-
-### 1.2 Code Quality ✅
-- [x] Type hints on all public functions
-- [x] Proper exception handling
-- [x] CLI argument validation
-
----
-
 ## Phase 2: System Tables Integration ✅ COMPLETE
-
-### 2.1 Billing Integration ✅
-- [x] Implement `src/dburnrate/tables/billing.py`
-- [x] Query `system.billing.usage`
-- [x] Query `system.billing.list_prices`
-- [x] Cost attribution: `query_duration / total_duration * hourly_cost`
-
-### 2.2 Query History Integration ✅
-- [x] Implement `src/dburnrate/tables/queries.py`
-- [x] Extract: `execution_duration_ms`, `read_bytes`, `read_rows`, `total_task_duration_ms`
-- [x] SQL fingerprinting: `normalize_sql()` + SHA-256 → `fingerprint_sql()`
-
-### 2.3 Compute Integration ✅
-- [x] Implement `src/dburnrate/tables/compute.py`
-- [x] Query `system.compute.node_types`
-- [x] Query `system.compute.clusters`
-- [x] Query `system.compute.node_timeline`
-
-### 2.4 Databricks Connection ✅
-- [x] REST API client (`src/dburnrate/tables/connection.py`)
-- [x] Workspace URL + token auth (Bearer)
-- [x] Inline result short-circuit + polling for async statements
-- [x] Basic retry logic
-
----
 
 ## Phase 3: EXPLAIN COST Integration ✅ COMPLETE
 
-### 3.1 EXPLAIN Parsing ✅
-- [x] Implement `src/dburnrate/parsers/explain.py`
-- [x] Parse `sizeInBytes` and `rowCount`
-- [x] Extract join strategies
-- [x] Count shuffle operations
-- [x] Research spec: `docs/explain-cost-schema.md`
+## Phase 4: Databricks-Native Foundation & Critical Fixes (🔴 Must Do First)
 
-### 3.2 Statistics Handling ✅
-- [x] Detect completeness (8-byte placeholder = no stats)
-- [x] Handle tables without ANALYZE (zero-fill)
-- [x] Delta metadata integration (`src/dburnrate/parsers/delta.py`)
+> These bugs make every existing estimate wrong. Fix before wiring CLI. See `files/01-CRITICAL-CODE-FIXES.md` for full details.
 
-### 3.3 Hybrid Estimation ✅
-- [x] Combine static + EXPLAIN (`src/dburnrate/estimators/hybrid.py`)
-- [x] Weight EXPLAIN higher when stats available
-- [x] Confidence boost on agreement
+### 4.1 Fix Quadratic Formula → Linear Throughput Model (estimators/static.py)
+### 4.2 Fix Phantom Price (estimators/hybrid.py)
+### 4.3 Fix EXPLAIN DBU Constants (estimators/hybrid.py)
+### 4.4 Add Data Volume Scaling to Historical Estimates (estimators/hybrid.py)
+### 4.5 Fix SQL Injection in Table Queries (tables/*.py)
+### 4.6 Fix Anti-Pattern Detector (parsers/antipatterns.py)
+### 4.7 Fix protocols.py Shadow Classes
+### 4.8 Fix SKU Inference (estimators/static.py)
+### 4.9 Fix forecast/prophet.py Empty Stub
+### 4.10 Add Graceful CLI Degradation
+### 4.11 TableRegistry (Enterprise Support)
+### 4.12 RuntimeBackend (Dual-Mode)
 
----
+## Phase 5: Pre-Orchestration Job Cost Projection (🚀 New Core)
 
-## Phase 4A: Critical Bug Fixes (🔴 Must Do First)
+*Shift focus to cluster configuration and historical baselines for recurring jobs.*
 
-> These bugs make every existing estimate wrong. Fix before wiring CLI.
+### 5.1 Static Cost Projection from Job Definitions (`tasks/p5-01-job-definition-cost.md`)
+- Parse `databricks.yml` (DABs) and Job JSON
+- Extract cluster configuration (node_type, workers, autoscaling, photon)
+- Compute cost range using Qubika Cost Multiplier Model
 
-### 4A.1 Fix Quadratic Formula → Linear Throughput Model (estimators/static.py)
-- [ ] Replace `complexity² × cluster_factor / 100` with linear model
-- [ ] Formula: `(scan_bytes / throughput_bps + shuffle_count × shuffle_overhead_sec) / 3600 × cluster_dbu_per_hour`
-- [ ] Use interim constant: `throughput_bps = 3.2e9` (DS4_v2 Parquet scan from R1 research)
-- [ ] Verify: GROUP BY on 2-worker DS3_v2 produces ~0.001 DBU (not 0.96)
+### 5.2 Historical Cost Baselines by Job Fingerprint (`tasks/p5-02-historical-baselines.md`)
+- Query `system.billing.usage` joined with `system.lakeflow.job_run_timeline`
+- Build per-job cost distributions (mean, P50, P90, P95)
 
-### 4A.2 Fix Phantom Price (estimators/hybrid.py)
-- [ ] Remove `_NOMINAL_USD_PER_DBU = 0.20`
-- [ ] Use `get_dbu_rate(sku)` from `core/pricing.py` throughout
-- [ ] Return DBU estimates from hybrid; let CLI/API layer convert to dollars
+### 5.3 Job Estimation Pipeline (`tasks/p5-03-job-estimation-pipeline.md`)
+- Orchestrate static projection and historical baselines
+- Export local baselines for offline workloads
 
-### 4A.3 Fix EXPLAIN DBU Constants (estimators/hybrid.py)
-- [ ] Replace `_SCAN_DBU_PER_GB = 0.5` with `_SCAN_DBU_PER_GB = 0.000063` (derived from 0.3s/GB × cluster_dbu_per_hour / 3600)
-- [ ] Document derivation with citation (R1 benchmarks)
-- [ ] Add TODO comment noting constants need empirical calibration (R1)
+## Phase 6: CI/CD Guardrails & Cost Enforcement (⏳ Planned)
 
-### 4A.4 Add Data Volume Scaling to Historical Estimates (estimators/hybrid.py)
-- [ ] Implement: `adjusted_ms = p50_ms × (current_read_bytes / median_historical_read_bytes)`
-- [ ] Guard: if `median_historical_read_bytes == 0`, skip scaling
+### 6.1 Budget Integration (`tasks/p6-01-budget-integration.md`)
+- Check projected costs against team/project budgets using Budgets API.
 
-### 4A.5 Fix SQL Injection in Table Queries (tables/*.py)
-- [ ] Sanitize `cluster_id`, `warehouse_id`, `statement_id` inputs (alphanumeric + hyphens only)
-- [ ] Add `_sanitize_id(value: str) -> str` helper in `connection.py`
+### 6.2 Cost Regression Detection (`tasks/p6-02-cost-regression.md`)
+- Compare projected run costs against historical baselines.
+- Alert when a job's cost increases beyond threshold (e.g. 2x week-over-week).
 
-### 4A.6 Fix Anti-Pattern Detector (parsers/antipatterns.py)
-- [ ] Replace string-matching with sqlglot AST traversal
-- [ ] Reuse `detect_operations()` from `sql.py`
+### 6.3 Drift Monitoring (`tasks/p6-03-drift-monitoring.md`)
+- Track workload drift using new December 2025 timeline columns (`setup_duration_seconds`, etc.)
 
-### 4A.7 Fix protocols.py Shadow Classes
-- [ ] Remove `CostEstimate` and `ParseResult` placeholder classes from `protocols.py`
-- [ ] Update `Estimator` protocol to import from `models.py`
+## Phase 7: Query-Level Estimation Wiring (⏳ Planned)
 
----
+*Original Phase 4B.*
+### 7.1 EstimationPipeline Orchestrator (`tasks/p7-01-estimation-pipeline.md`)
+### 7.2 Delta Metadata Scan Size (`tasks/p7-02-delta-scan-size.md`)
+### 7.3 Fingerprint Lookup (`tasks/p7-03-fingerprint-lookup.md`)
+### 7.4 AWS/GCP Pricing (`tasks/p7-04-aws-gcp-pricing.md`)
 
-## Phase 4B: CLI Wiring & Attribution (🔄 Active)
+## Phase 8: Production Hardening (⏳ Planned)
+- Caching, Error Handling, Observability (`tasks/p8-*.md`)
 
-> Task files: `tasks/p4-01-wire-explain-into-cli.md`, `tasks/p4-02-delta-scan-size.md`,
-> `tasks/p4-03-fingerprint-lookup.md`, `tasks/p4-04-aws-gcp-pricing.md`
-
-### 4B.1 EstimationPipeline Orchestrator (NEW — required first)
-- [ ] Create `src/dburnrate/estimators/pipeline.py`
-- [ ] `EstimationPipeline.estimate(query, cluster)` orchestrates all tiers
-- [ ] Tier 1: static (always runs)
-- [ ] Tier 2: Delta metadata (if connected)
-- [ ] Tier 3: EXPLAIN COST (if connected + warehouse_id)
-- [ ] Tier 4: fingerprint + history lookup (if connected)
-- [ ] Graceful fallback at each tier
-
-### 4B.2 Wire Pipeline into CLI
-- [ ] `estimate` command uses `EstimationPipeline`, not static estimator
-- [ ] `--warehouse-id`, `--workspace-url` flags
-- [ ] `--explain` flag shows per-tier breakdown
-- [ ] Fallback to static on connection error
-
-### 4B.3 Missing `tables/attribution.py`
-- [ ] Implement billing × list_prices join (canonical SQL from `files/02-ARCHITECTURE-GAPS.md`)
-- [ ] Per-query attribution via warehouse_id + time overlap
-- [ ] Lakeflow job-run cost attribution
-- [ ] `get_historical_cost(fingerprint)` → used by pipeline Tier 4
-
-### 4B.4 AWS/GCP Pricing
-- [ ] `get_dbu_rate(sku_name, cloud="AZURE", tier="PREMIUM") -> Decimal`
-- [ ] AWS and GCP DBU rates in `pricing.py`
-- [ ] Cloud auto-detection from workspace URL
-- [ ] `--cloud` CLI flag
-
----
-
-## Phase 4C: Enterprise Support (⏳ Planned)
-
-### 4C.1 TableRegistry
-- [ ] `src/dburnrate/core/table_registry.py` — frozen dataclass with default `system.*` paths
-- [ ] Thread registry through `billing.py`, `queries.py`, `compute.py` (all 8 hardcoded refs)
-- [ ] Env var support: `DBURNRATE_TABLE_BILLING_USAGE`, etc.
-- [ ] TOML config: `[dburnrate.tables]` in `.dburnrate.toml`
-
-### 4C.2 RuntimeBackend (Dual-Mode)
-- [ ] `src/dburnrate/runtime/` package
-- [ ] `RuntimeBackend` Protocol: `execute_sql()`, `explain_cost()`, `describe_detail()`, `is_connected`
-- [ ] `SparkBackend`: uses `SparkSession.getActiveSession()` (in-cluster)
-- [ ] `RestBackend`: uses `DatabricksClient` (external)
-- [ ] `auto_backend()`: checks `DATABRICKS_RUNTIME_VERSION` env var
-
-### 4C.3 Top-Level Python API
-- [ ] `dburnrate.estimate(query, cluster=None, registry=None) -> CostEstimate`
-- [ ] `dburnrate.TableRegistry` exported from `__init__.py`
-
----
-
-## Phase 4D: `dburnrate lint` (🟢 Ready Today)
-
-Anti-pattern detection works now with zero calibration. Ship as standalone feature.
-
-### 4D.1 CLI Command
-- [ ] `dburnrate lint <path|glob>` — recursive file discovery
-- [ ] Output: file:line severity message
-- [ ] Exit code 1 if any errors found (CI-compatible)
-- [ ] Severity levels: ERROR / WARNING / INFO
-- [ ] `--format json` for CI integration
-
----
-
-## Phase 5: Production Hardening (⏳ Planned)
-
-> Consolidates former Phases 5, 7, 8, 9, 10. Task files: `tasks/p5-*.md`
-
-### 5.1 Error Handling
-- [ ] Extended exception hierarchy (`AuthenticationError`, `RateLimitError`, `WarehouseError`)
-- [ ] User-friendly messages with recovery suggestions
-- [ ] Token redaction from all error output
-- [ ] Graceful degradation with `--extra sql` hint
-
-### 5.2 Caching & Performance
-- [ ] TTL cache for `DESCRIBE DETAIL` results (5 min default)
-- [ ] `requests.Session` + `HTTPAdapter` pool in `DatabricksClient`
-- [ ] Server-side fingerprinting: push `SHA2(REGEXP_REPLACE(...))` to SQL instead of client-side
-- [ ] `sqlglotrs` optional dep for batch mode
-
-### 5.3 Observability
-- [ ] `logging.NullHandler()` on `dburnrate` root logger
-- [ ] Structured log calls (DEBUG/INFO/WARNING/ERROR)
-- [ ] `--debug` flag for verbose output + full tracebacks
-- [ ] Per-tier timing in `CostEstimate.breakdown`
-
-### 5.4 Multi-Cloud Pricing
-- [ ] AWS DBU rates + instance types (Photon 2.9× multiplier)
-- [ ] GCP DBU rates + instance types
-- [ ] VM pricing via Azure Retail Prices API / AWS Pricing API / GCP Billing Catalog (or Infracost)
-- [ ] Total cost of ownership: DBU + VM for classic; DBU-bundled for serverless
-
-### 5.5 Enhanced Operations
-- [ ] COPY INTO, OPTIMIZE/ZORDER detection (sqlglot AST)
-- [ ] Unity Catalog 3-level naming awareness
-- [ ] Anti-pattern severity levels + suggestions
-
-### 5.6 CLI Enhancements
-- [ ] `--export json/csv` flag
-- [ ] `dburnrate audit --days N` — hidden cost audit (PO, mat views, monitoring)
-- [ ] `dburnrate waste --days N` — idle cluster detection
-- [ ] `dburnrate advise` — compute type advisor
-
----
-
-## Phase 6: ML Cost Models (⏳ Planned — Requires Calibration Data from 4B)
-
-> Task files: `tasks/p6-*.md`
-
-### 6.1 Feature Extraction
-- [ ] `src/dburnrate/estimators/features.py` — `QueryFeatures` dataclass
-- [ ] Operator types, cardinalities from EXPLAIN
-- [ ] Table sizes from Delta, cluster config
-- [ ] `FEATURE_NAMES` constant
-
-### 6.2 Classification Model
-- [ ] `src/dburnrate/estimators/ml.py` — `CostBucketClassifier`
-- [ ] Buckets: low (<0.1 DBU) / medium / high / very-high (>10 DBU)
-- [ ] `HistGradientBoostingClassifier` (sklearn `[ml]` extra)
-- [ ] `train-model` CLI command
-
-### 6.3 HybridEstimator Integration
-- [ ] ML bucket as optional fourth signal in `EstimationPipeline`
-- [ ] Confidence adjustment when ML contradicts other signals
-
----
-
-## v0.2: New Features (⏳ Deferred)
-
-Requires calibrated estimation (Phase 4A) first.
-
-| Feature | Description | Effort |
-|---------|-------------|--------|
-| Notebook-level aggregation | Per-cell cost breakdown for `.ipynb` files | 3 days |
-| Cost regression detection | Alert when p50 cost for fingerprint jumps >2× | 1 week |
-| Committed-use discount modeling | Model DBCU savings from 90-day usage | 3 days |
-| Lakeflow job DAG estimation | Estimate multi-task job from job definition JSON | 2 weeks |
-| Batch file analysis | `dburnrate estimate-batch "queries/*.sql"` | 1 week |
-| Spot instance modeling | Model spot VM savings vs interruption risk | 2 days |
-
----
-
-## v0.3: CI/CD & Integrations (⏳ Deferred)
-
-| Feature | Description |
-|---------|-------------|
-| CI/CD cost gate | `dburnrate compare baseline.json current.json --threshold 200%` |
-| DABs integration | `dburnrate estimate-bundle ./databricks.yml` |
-| Notebook widget | `dburnrate.install_widget()` for Databricks UI |
-| GitHub Actions template | Post estimate as PR comment |
-| Data layout advisor | Liquid Clustering vs partitioning scan cost impact |
-
----
+## Phase 9: ML Cost Models (⏳ Planned)
+- ML Models and Feature Extraction (`tasks/p9-*.md`)
 
 ## Post-MVP: Advanced Features
 
@@ -1167,3 +984,27 @@ class CellEstimate:
 8. **Full parity across 5 modes** - Every feature available in every context; backend is the only variable
 
 *Document version: 1.3 | Last updated: March 2026 | Audit: files/00-EXECUTIVE-SUMMARY.md*
+
+# Pre-Orchestration FinOps Research (Redesign Foundation)
+
+## The Qubika Cost Multiplier Model
+
+Total Cost = Workload Design × Compute Strategy × Feature Overhead
+
+*   **Workload Design:** Base cost (data processed, unpartitioned scans).
+*   **Compute Strategy:** 3-4x variance. (Jobs $0.15–0.30/DBU vs. All-Purpose $0.40–0.65/DBU vs. Serverless $0.70–0.95/DBU). Instance types add 2-6x variance. Autoscaling reduces costs 40-60%.
+*   **Feature Overhead:** Photon adds 2.5–2.9x DBU rates.
+
+## System Table Datasets (Job Attribution)
+
+*   `system.billing.usage`: Billable consumption. Has `usage_metadata.job_id` and `job_run_id`.
+*   `system.lakeflow.job_run_timeline`: Temporal bridge. As of Jan 2026, features clock-hour-aligned slicing for direct joins. Has duration components: `setup_duration_seconds`, `queue`, `execution`, `cleanup`.
+*   `system.lakeflow.jobs`: SCD2 metadata for tracking job definition evolution.
+
+## Why Job-Level Estimation Beats Query-Level
+
+Query-level models degrade rapidly (often >50% error on complex queries) and struggle with 70% of Databricks workloads, which are PySpark-based and rarely expressible as clean SQL plans. Job-level models rely on stable recurring structures, using historical execution bounds and cluster definitions to achieve ±10% prediction accuracy at scale.
+
+## CI/CD and DABs Integration
+
+Parse `databricks.yml` inside CI/CD gates to block costly configuration mutations before submission, bridging the gap left by Databricks Native policies (which monitor but cannot hard-enforce per-job caps).

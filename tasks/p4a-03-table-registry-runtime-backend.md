@@ -10,7 +10,7 @@ status: todo
 phase: 4C
 priority: high
 agent: ~
-blocked_by: [p4a-02-estimation-pipeline]
+blocked_by: [p4a-02-estimation-pipeline, p4a-01b-remaining-bugs]
 created_by: planner
 ```
 

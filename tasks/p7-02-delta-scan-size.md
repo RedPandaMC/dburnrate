@@ -6,11 +6,11 @@
 
 ```yaml
 id: p4-02-delta-scan-size
-status: todo
+status: in-progress
 phase: 4
 priority: medium
 agent: kimi
-blocked_by: []
+blocked_by: [p4-01-wire-explain-into-cli, p4a-01-critical-bug-fixes]
 created_by: planner
 ```
 

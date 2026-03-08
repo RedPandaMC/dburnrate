@@ -1,16 +1,16 @@
-# Task: [Short title — imperative verb phrase]
+# Task: [Task Name]
 
 ---
 
 ## Metadata
 
 ```yaml
-id: p{phase}-{seq:02d}-{slug}
-status: todo          # todo | in-progress | done | blocked | cancelled
-phase: 1              # which FUTURE_TODOS.md phase this belongs to
-priority: high        # high | medium | low
-agent: ~              # filled by executor: model-id that claimed this task
-blocked_by: []        # list of task IDs that must be done first
+id: [phase]-[sequence]-[slug]
+status: todo
+phase: [phase number]
+priority: [critical|high|medium|low]
+agent: ~
+blocked_by: []
 created_by: planner
 ```
 
@@ -20,50 +20,46 @@ created_by: planner
 
 ### Goal
 
-[One paragraph. What must be done and why. Written for an executor who has not read FUTURE_TODOS.md.]
+[One paragraph describing what needs to be built and why.]
 
-### Files to read (executor reads ONLY these)
+### Files to read
 
 ```
-# Required — read before starting
-src/dburnrate/<path>
-tests/<path>
+# Required
+src/dburnrate/...
+tests/...
 
-# Reference — read if needed
-PLAN.md              # for implementation patterns
+# Reference
+DESIGN.md
 ```
 
 ### Background
 
-[Any specific knowledge the executor needs. Reference exact sections of RESEARCH.md or CONCEPT.md if relevant. Keep this tight — do not copy-paste whole documents.]
+[Any relevant architectural decisions, API structures, or mathematical formulas. If this is an estimation task, YOU MUST include the formulas here along with justifications/sources for any constants.]
 
 ---
 
 ## Acceptance Criteria
 
-Each line is a binary yes/no check:
-
-- [ ] ...
-- [ ] All public functions have type hints and docstrings
-- [ ] `uv run pytest -m unit -v` passes with no failures
-- [ ] `uv run ruff check src/ tests/` produces zero errors
+- [ ] [Criterion 1]
+- [ ] [Criterion 2]
+- [ ] [Estimation tasks: Estimate output falls within Phase tolerance bounds (Phase 4: 10x, Phase 5: 3x, Phase 6: 2x)]
 
 ---
 
 ## Verification
 
-### Commands (run all, in order)
+### Commands
 
 ```bash
 uv run pytest -m unit -v
 uv run ruff check src/ tests/
-uv run ruff format --check src/ tests/
-uv run bandit -c pyproject.toml -r src/
+# Add specific test run or CLI command here
 ```
 
-### Expected output
+### Integration Check
 
-[Describe what passing looks like, e.g. "X passed, 0 failed" or specific test names that should now pass.]
+- [ ] Run `dburnrate estimate` (or relevant CLI command) and confirm the output reflects the new feature/fix. The new logic MUST be wired up and reachable from the user-facing CLI.
 
 ---
 
@@ -71,13 +67,13 @@ uv run bandit -c pyproject.toml -r src/
 
 ### Result
 
-[Executor fills this in when done. Paste key test output, summarize what changed.]
+[Executor fills this in when done. Paste command outputs here.]
 
-```
+```yaml
 status: todo
-# ^ change to done/blocked when finished
+# ^ change to validation-pending / done / blocked when finished
 ```
 
 ### Blocked reason
 
-[If blocked, explain exactly what is missing and what the planner needs to do to unblock.]
+[If blocked, explain exactly what is missing.]

@@ -10,7 +10,7 @@ status: todo
 phase: 4
 priority: high
 agent: ~
-blocked_by: [p4-01-wire-explain-into-cli]
+blocked_by: [p4-01-wire-explain-into-cli, p4a-01-critical-bug-fixes, p4-02-delta-scan-size]
 created_by: planner
 ```
 

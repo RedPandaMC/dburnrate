@@ -7,12 +7,10 @@ from rich.table import Table
 from ..core.config import Settings
 from ..core.models import ClusterConfig
 from ..core.pricing import AZURE_INSTANCE_DBU, get_dbu_rate
-from ..estimators.hybrid import HybridEstimator
+from ..estimators.pipeline import EstimationPipeline
 from ..estimators.static import CostEstimator
 from ..estimators.whatif import apply_photon_scenario, apply_serverless_migration
-from ..parsers.explain import parse_explain_cost
 from ..parsers.notebooks import parse_dbc, parse_notebook
-from ..tables.connection import DatabricksClient
 
 app = typer.Typer(help="dburnrate - Pre-execution cost estimation for Databricks")
 console = Console()
@@ -58,41 +56,38 @@ def estimate(
         photon_enabled=photon,
     )
 
-    signal = "static"
+    settings = Settings()
+    if workspace_url:
+        settings.workspace_url = workspace_url
 
-    if warehouse_id:
+    pipeline = EstimationPipeline(
+        backend=None,
+        warehouse_id=warehouse_id,
+    )
+
+    if warehouse_id and settings.workspace_url and settings.token:
         try:
-            settings = Settings()
-            if workspace_url:
-                settings.workspace_url = workspace_url
+            from ..tables.connection import DatabricksClient
 
-            if not settings.workspace_url or not settings.token:
-                console.print(
-                    "[yellow]Warning: DBURNRATE_WORKSPACE_URL or DBURNRATE_TOKEN not set. Using static estimation.[/yellow]"
-                )
-                signal = "static"
-            else:
-                with DatabricksClient(settings) as client:
-                    explain_sql = f"EXPLAIN COST {query}"
-                    rows = client.execute_sql(explain_sql, warehouse_id)
-                    plan_text = rows[0].get("plan", "") if rows else ""
-                    if not plan_text:
-                        console.print(
-                            "[yellow]Warning: EXPLAIN COST returned empty result. Using static estimation.[/yellow]"
-                        )
-                        signal = "static"
-                    else:
-                        plan = parse_explain_cost(plan_text)
-                        hybrid = HybridEstimator()
-                        result = hybrid.estimate(query, cluster, explain_plan=plan)
-                        signal = "explain+static"
+            pipeline = EstimationPipeline(
+                backend=DatabricksClient(settings),
+                warehouse_id=warehouse_id,
+            )
         except Exception as e:
             console.print(
-                f"[yellow]Warning: EXPLAIN COST failed ({e}). Using static estimation.[/yellow]"
+                f"[yellow]Warning: Failed to connect to Databricks ({e}). Using offline estimation.[/yellow]"
             )
-            signal = "static"
+            pipeline = EstimationPipeline(backend=None, warehouse_id=None)
 
-    if signal == "static":
+    result = pipeline.estimate(query, cluster)
+
+    signal = "static"
+    for warning in result.warnings:
+        if warning.startswith("Signal:"):
+            signal = warning.replace("Signal:", "").strip()
+            break
+
+    if currency != "USD" and result.estimated_cost_usd:
         estimator = CostEstimator(cluster=cluster, target_currency=currency)
         result = estimator.estimate(query)
 

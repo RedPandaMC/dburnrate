@@ -10,7 +10,7 @@ status: todo
 phase: 4B
 priority: high
 agent: ~
-blocked_by: [p4a-01-critical-bug-fixes]
+blocked_by: [p4a-01-critical-bug-fixes, p4a-01b-remaining-bugs]
 created_by: planner
 ```
 
