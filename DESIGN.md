@@ -1005,3 +1005,18 @@ Query-level models degrade rapidly (often >50% error on complex queries) and str
 ## CI/CD and DABs Integration
 
 Parse `databricks.yml` inside CI/CD gates to block costly configuration mutations before submission, bridging the gap left by Databricks Native policies (which monitor but cannot hard-enforce per-job caps).
+
+# The "Developer's Best Friend" Programmatic UX
+
+A critical design shift for `dburnrate` is ensuring the Python API (`import dburnrate`) is actually useful to a Data Engineer, rather than just being architectural vanity. We explicitly reject the "string-only" API approach where users must copy-paste their 500-line queries into Python string literals to estimate them.
+
+Instead, the programmatic API is designed around three highly pragmatic workflows:
+
+### 1. The "Circuit Breaker" Pattern
+For pipelines that dynamically generate SQL or DataFrames based on runtime parameters (e.g., date ranges, tenant IDs), developers can use `dburnrate.estimate(sql)` right before `spark.sql(sql)`. If the estimated cost exceeds a budget, the pipeline can alert Slack and halt execution, preventing runaway costs from dynamic code.
+
+### 2. Cost-Aware Unit Testing
+Data engineers write `pytest` suites to verify their transformations. `dburnrate.estimate_file("src/jobs/daily_aggregation.py")` allows them to write tests for their *costs*. If a pull request modifies a file and causes the estimated cost to jump from $5 to $50, the CI/CD pipeline fails exactly like a broken unit test.
+
+### 3. Context-Aware "End of Notebook" Advisor
+This is the "Holy Grail" workflow. When a developer finishes testing a notebook interactively on an All-Purpose cluster, they simply run `dburnrate.advise_current_session()` in the final cell. The tool natively inspects the `SparkSession`, analyzes the metrics of the queries that *just ran*, and outputs a production compute recommendation (e.g., "Schedule this on a `DS3_v2` Jobs cluster to save 80%"). Zero copy-pasting of Job IDs required.

@@ -20,7 +20,7 @@ created_by: planner
 
 ### Goal
 
-Make `dburnrate` a first-class programmatic Python library, not just a CLI tool. Data engineers should be able to `import dburnrate` inside their Databricks notebooks to run cost-aware linting, get interactive advice, and estimate costs.
+Make `dburnrate` a first-class programmatic Python library, optimized for Data Engineers. We need to support the three core workflows: Circuit Breaker (`estimate`), Cost-Aware Unit Testing (`estimate_file`), and the Context-Aware Advisor (`advise_current_session`).
 
 ### Files to read
 
@@ -29,19 +29,22 @@ Make `dburnrate` a first-class programmatic Python library, not just a CLI tool.
 src/dburnrate/__init__.py
 src/dburnrate/estimators/pipeline.py
 src/dburnrate/parsers/antipatterns.py
+docs/programmatic-workflows.md
 ```
 
 ### Background
 
-Currently `__init__.py` is virtually empty. We need to expose the core functions of the package so developers can use them seamlessly without wrestling with internal class instantiation.
+Currently `__init__.py` only exposes the version string. We need to expose the core functions of the package so developers can use them seamlessly without wrestling with internal class instantiation.
 
 ---
 
 ## Acceptance Criteria
 
-- [ ] Expose `dburnrate.lint(sql_or_file_path: str)` -> returns list of AntiPattern objects
-- [ ] Expose `dburnrate.estimate(sql_or_file_path: str, cluster=None, registry=None)` -> returns CostEstimate
-- [ ] Expose `dburnrate.advise(run_id: str)` -> returns AdvisoryReport (stub this out for the next task)
+- [ ] Expose `dburnrate.lint(sql: str)` -> returns list of AntiPattern objects
+- [ ] Expose `dburnrate.lint_file(path: str)` -> reads file, runs lint
+- [ ] Expose `dburnrate.estimate(sql: str, cluster=None, registry=None)` -> returns CostEstimate
+- [ ] Expose `dburnrate.estimate_file(path: str, cluster=None, registry=None)` -> reads file, runs estimate
+- [ ] Expose `dburnrate.advise_current_session()` -> stub for now, raises NotImplementedError
 - [ ] Ensure `__all__` is properly defined in `__init__.py`
 - [ ] Add unit tests verifying these top-level imports and functions work
 
