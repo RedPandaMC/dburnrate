@@ -7,7 +7,7 @@
 
 **Pre-Orchestration FinOps & Cost Estimation for Databricks**
 
-Project job costs _before_ you deploy them. Enforce budgets in CI/CD.
+Project job and query costs _before_ you run them.
 
 [![Tests](https://img.shields.io/badge/tests-263%20passing-brightgreen)](https://github.com/anomalyco/dburnrate/actions)
 [![Python](https://img.shields.io/badge/python-3.12-blue)](https://www.python.org/)
@@ -29,7 +29,6 @@ Industry benchmarks show that **cluster configuration drives 70% of Databricks s
 
 *   **Pre-Orchestration Estimates:** Parse `databricks.yml` and Job JSON to project minimum and maximum workload costs before deployment.
 *   **Historical Baselines:** Cross-reference `system.lakeflow.jobs` and `system.billing.usage` to detect silent cost drift.
-*   **CI/CD Guardrails:** Block deployments if projected costs exceed Databricks Budgets or jump >20% week-over-week.
 *   **Query-Level `EXPLAIN` Analytics:** For ad-hoc analytics, estimate SQL query costs utilizing Spark's `EXPLAIN COST` without touching the actual data.
 
 ---
@@ -99,8 +98,7 @@ dburnrate.display()
 | 1-3 | ✅ Done | Foundation, System Tables, EXPLAIN parser |
 | 4 | 🔄 Active | Databricks-Native Runtime & Core Math Fixes |
 | 5 | ⏳ Planned | Pre-Orchestration Job Cost Projection (DABs) |
-| 6 | ⏳ Planned | CI/CD Guardrails (Budgets, Regression, Drift) |
-| 7 | ⏳ Planned | Query-Level Estimation Wiring |
+| 6 | ⏳ Planned | Query-Level Estimation Wiring |
 
 For a complete look at our architecture and research findings, see [`DESIGN.md`](DESIGN.md).
 
