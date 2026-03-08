@@ -152,6 +152,69 @@ def whatif(
             console.print(f"[yellow]Warning:[/yellow] {w}")
 
 
+
+@app.command()
+def lint(
+    path: str = typer.Argument(..., help="Path to file or directory to lint"),
+    fail_on: str = typer.Option("error", "--fail-on", help="Exit code 1 on severity (info, warning, error)"),
+):
+    """Lint SQL and PySpark code for cost anti-patterns."""
+    from pathlib import Path
+    import sys
+    from dburnrate import lint_file
+
+    target = Path(path)
+    if not target.exists():
+        console.print(f"[red]Error:[/red] Path not found: {path}")
+        raise typer.Exit(1)
+
+    files_to_lint = []
+    if target.is_file():
+        files_to_lint.append(target)
+    else:
+        files_to_lint.extend(target.rglob("*.sql"))
+        files_to_lint.extend(target.rglob("*.py"))
+
+    if not files_to_lint:
+        console.print("[yellow]No .sql or .py files found to lint.[/yellow]")
+        raise typer.Exit(0)
+
+    severity_levels = {"info": 1, "warning": 2, "error": 3}
+    fail_threshold = severity_levels.get(fail_on.lower(), 3)
+    
+    found_issues = False
+    fail_build = False
+
+    for file_path in files_to_lint:
+        issues = lint_file(file_path)
+        if issues:
+            found_issues = True
+            console.print(f"\n[bold]{file_path}[/bold]")
+            for issue in issues:
+                color = "red" if issue.severity == "error" else "yellow" if issue.severity == "warning" else "blue"
+                console.print(f"  [{color}]{issue.severity.upper()}[/{color}] {issue.name}: {issue.description}")
+                console.print(f"  [dim]Suggestion: {issue.suggestion}[/dim]")
+                
+                if severity_levels.get(str(issue.severity), 0) >= fail_threshold:
+                    fail_build = True
+
+    if not found_issues:
+        console.print("[green]No cost anti-patterns found![/green]")
+        
+    if fail_build:
+        raise typer.Exit(1)
+
+
+@app.command()
+def advise(
+    run_id: str = typer.Option(..., "--run-id", help="Databricks Job Run ID or Statement ID to analyze"),
+):
+    """Analyze a recent interactive test run and recommend an optimized Jobs Cluster configuration."""
+    console.print(f"[bold blue]Analyzing execution metrics for run: {run_id}[/bold blue]")
+    console.print("[yellow]Note: The Interactive Advisor is currently in active development.[/yellow]")
+    console.print("This command will soon connect to system.lakeflow.job_run_timeline to fetch actual memory/CPU metrics.")
+    raise typer.Exit(0)
+
 @app.command()
 def version():
     """Print version info."""
