@@ -21,7 +21,7 @@
 | 2 | ✅ Done | Databricks system table client (billing, query history, compute) | `tasks/p2-*.md.completed` |
 | 3 | ✅ Done | EXPLAIN COST parser, Delta log reader, hybrid estimator | `tasks/p3-*.md.completed` |
 | 4 | 🔄 Active | Databricks-Native Foundation & Critical Fixes | `tasks/p4a-*.md` |
-| 5 | ⏳ Planned | Pre-Orchestration Job Cost Projection (Static + Historical) | `tasks/p5-*.md` |
+| 5 | ⏳ Planned | The Interactive Advisor & Top-Level Programmatic API | `tasks/p5-*.md` |
 | 6 | ⏳ Planned | CI/CD Guardrails (Budgets, Regression, Drift) | `tasks/p6-*.md` |
 | 7 | ⏳ Planned | Query-Level Estimation Wiring | `tasks/p7-*.md` |
 | 8 | ⏳ Planned | Production Hardening | `tasks/p8-*.md` |
@@ -736,22 +736,19 @@ def _require(module: str, extra: str):
 ### 4.11 TableRegistry (Enterprise Support)
 ### 4.12 RuntimeBackend (Dual-Mode)
 
-## Phase 5: Pre-Orchestration Job Cost Projection (🚀 New Core)
+## Phase 5: The Developer's Advisor (🚀 New Core)
 
-*Shift focus to cluster configuration and historical baselines for recurring jobs.*
+*Shift focus from static guessing to translating interactive test runs into production optimizations. Make the tool a first-class programmatic library.*
 
-### 5.1 Static Cost Projection from Job Definitions (`tasks/p5-01-job-definition-cost.md`)
-- Parse `databricks.yml` (DABs) and Job JSON
-- Extract cluster configuration (node_type, workers, autoscaling, photon)
-- Compute cost range using Qubika Cost Multiplier Model
+### 5.1 Top-Level Programmatic API (`tasks/p5-01-top-level-api.md`)
+- Expose `dburnrate.lint()`, `dburnrate.estimate()`, and `dburnrate.advise()` at the package root.
+- Ensure developers can easily import and use the tool inside Databricks Notebooks.
 
-### 5.2 Historical Cost Baselines by Job Fingerprint (`tasks/p5-02-historical-baselines.md`)
-- Query `system.billing.usage` joined with `system.lakeflow.job_run_timeline`
-- Build per-job cost distributions (mean, P50, P90, P95)
-
-### 5.3 Job Estimation Pipeline (`tasks/p5-03-job-estimation-pipeline.md`)
-- Orchestrate static projection and historical baselines
-- Export local baselines for offline workloads
+### 5.2 The Interactive-to-Production Advisor (`tasks/p5-02-interactive-advisor.md`)
+- `dburnrate advise --run-id <id>`
+- Fetch actual execution metrics from an interactive test run (All-Purpose compute).
+- Feed metrics into the `WhatIf` engine to project costs onto Jobs Compute, Serverless, and Spot.
+- Generate actionable recommendations (e.g., downsizing clusters based on peak memory, suggesting Spot for stateless jobs).
 
 ## Phase 6: CI/CD Guardrails & Cost Enforcement (⏳ Planned)
 
