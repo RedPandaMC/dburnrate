@@ -80,11 +80,10 @@ class TestEstimateWithExplainStatsComplete:
     def test_cost_usd_set(
         self, estimator: HybridEstimator, simple_query: str, cluster: ClusterConfig
     ) -> None:
-        """estimated_cost_usd is set (not None) for blended estimate."""
+        """estimated_cost_usd is None for blended estimate (calculated in CLI layer)."""
         plan = ExplainPlan(total_size_bytes=1_000_000_000, stats_complete=True)
         result = estimator.estimate(simple_query, cluster, explain_plan=plan)
-        assert result.estimated_cost_usd is not None
-        assert result.estimated_cost_usd >= 0
+        assert result.estimated_cost_usd is None
 
 
 class TestEstimateWithExplainStatsIncomplete:
@@ -153,12 +152,10 @@ class TestEstimateWithHistorical:
     def test_historical_cost_usd_computed(
         self, estimator: HybridEstimator, simple_query: str, cluster: ClusterConfig
     ) -> None:
-        """estimated_cost_usd is set for historical estimates."""
+        """estimated_cost_usd is None for historical estimates (calculated in CLI layer)."""
         records = [self._make_record(3_600_000)]  # 1 hour
         result = estimator.estimate(simple_query, cluster, historical=records)
-        assert result.estimated_cost_usd is not None
-        # 1 hour * 0.75 DBU/h = 0.75 DBU; 0.75 * 0.20 = 0.15 USD
-        assert result.estimated_cost_usd == pytest.approx(0.15, rel=1e-4)
+        assert result.estimated_cost_usd is None
 
     def test_historical_takes_priority_over_explain(
         self, estimator: HybridEstimator, simple_query: str, cluster: ClusterConfig
