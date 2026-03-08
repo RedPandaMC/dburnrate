@@ -61,7 +61,7 @@ This repo uses **planner/executor/validator** pattern for AI-assisted developmen
 3. Read ONLY the files listed in the task's `context.files` section
 4. Implement, then run the task's `verification.commands` — ALL must pass
 5. **Integration check:** run `dburnrate estimate "SELECT 1"` and verify the new signal appears in output (not just unit tests passing)
-6. **Benchmark check** (estimation tasks only): run against `tests/benchmarks/` and confirm estimates are within the phase tolerance (Phase 4: 10×, Phase 5: 3×, Phase 6: 2×)
+6. **Benchmark check** (estimation tasks only): run against `tests/benchmarks/` and confirm estimates are within the phase tolerance (Phase 4: 10×, Phase 5: 3×, Phase 8: 2×)
 7. Write results to `handoff.result` in the task file
 8. Mark `status: done` or `status: blocked` (with reason)
 9. Never start a second task until the first is done or blocked
@@ -270,10 +270,9 @@ src/dburnrate/
 
 1. **Phase 4** (active): Fix critical mathematical bugs, SQL injections, and implement `TableRegistry` + `RuntimeBackend` so we can run natively.
 2. **Phase 5** (NEW CORE): Pre-Orchestration Job Cost Projection (Parse DABs + historical `lakeflow` baselines).
-3. **Phase 6**: CI/CD Cost Guardrails (Budgets, Regression, Drift).
-4. **Phase 7**: Wire remaining Query-Level EXPLAIN features.
-5. **Phase 8**: Production hardening (error handling, caching, observability).
-6. **Phase 9**: ML cost models.
+3. **Phase 6**: Wire remaining Query-Level EXPLAIN features.
+4. **Phase 7**: Production hardening (error handling, caching, observability).
+5. **Phase 8**: ML cost models.
 
 ---
 

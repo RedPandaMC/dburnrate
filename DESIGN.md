@@ -22,17 +22,15 @@
 | 3 | ✅ Done | EXPLAIN COST parser, Delta log reader, hybrid estimator | `tasks/p3-*.md.completed` |
 | 4 | 🔄 Active | Databricks-Native Foundation & Critical Fixes | `tasks/p4a-*.md` |
 | 5 | ⏳ Planned | The Interactive Advisor & Top-Level Programmatic API | `tasks/p5-*.md` |
-| 6 | ⏳ Planned | CI/CD Guardrails (Budgets, Regression, Drift) | `tasks/p6-*.md` |
-| 7 | ⏳ Planned | Query-Level Estimation Wiring | `tasks/p7-*.md` |
-| 8 | ⏳ Planned | Production Hardening | `tasks/p8-*.md` |
-| 9 | ⏳ Planned | ML Cost Models | `tasks/p9-*.md` |
+| 6 | ⏳ Planned | Query-Level Estimation Wiring | `tasks/p7-*.md` |
+| 7 | ⏳ Planned | Production Hardening | `tasks/p8-*.md` |
+| 8 | ⏳ Planned | ML Cost Models | `tasks/p9-*.md` |
 
 **Test count**: 263 passing | **Lint**: 0 errors | **Security**: bandit clean
 
 ### Roadmap changes (March 2026 Audit)
 - **Phase 11** (`estimate_current_notebook()`): Reinstated — not a gimmick but Mode 5 parity. `estimate_self()` renamed to `estimate_current_notebook()` with proper path detection chain.
 - **Phase 12** (batch glob): Deferred to v0.2 after core accuracy is validated
-- **Phase 13** (CI/CD workflows): Deferred to v0.3
 - **Phases 7–10**: Merged into Phase 5 (eliminated duplicate scope)
 
 ---
@@ -215,7 +213,7 @@ GROUP BY ALL ORDER BY list_cost DESC
 **Accuracy targets by phase:**
 - Phase 4: All estimates within **10×** of actual
 - Phase 5: Within **3×** of actual
-- Phase 6 (ML): Within **2×** of actual
+- Phase 8 (ML): Within **2×** of actual
 
 **Required benchmark structure:**
 ```
@@ -627,7 +625,7 @@ cost = (current_DBU × 2.5) / speedup_factor
 - **Acceldata**: cost + quality observability, 96–98% forecast accuracy
 - **CloudZero**: multi-vendor aggregation, lacks DB-specific optimization
 
-**Gap:** No tool provides **pre-execution cost estimation from code**, **what-if modeling with quantified tradeoffs**, or a **reusable Python library** for notebooks/CI/CD.
+**Gap:** No tool provides **pre-execution cost estimation from code**, **what-if modeling with quantified tradeoffs**, or a **reusable Python library** for notebooks.
 
 ---
 
@@ -750,19 +748,7 @@ def _require(module: str, extra: str):
 - Feed metrics into the `WhatIf` engine to project costs onto Jobs Compute, Serverless, and Spot.
 - Generate actionable recommendations (e.g., downsizing clusters based on peak memory, suggesting Spot for stateless jobs).
 
-## Phase 6: CI/CD Guardrails & Cost Enforcement (⏳ Planned)
-
-### 6.1 Budget Integration (`tasks/p6-01-budget-integration.md`)
-- Check projected costs against team/project budgets using Budgets API.
-
-### 6.2 Cost Regression Detection (`tasks/p6-02-cost-regression.md`)
-- Compare projected run costs against historical baselines.
-- Alert when a job's cost increases beyond threshold (e.g. 2x week-over-week).
-
-### 6.3 Drift Monitoring (`tasks/p6-03-drift-monitoring.md`)
-- Track workload drift using new December 2025 timeline columns (`setup_duration_seconds`, etc.)
-
-## Phase 7: Query-Level Estimation Wiring (⏳ Planned)
+## Phase 6: Query-Level Estimation Wiring (⏳ Planned)
 
 *Original Phase 4B.*
 ### 7.1 EstimationPipeline Orchestrator (`tasks/p7-01-estimation-pipeline.md`)
@@ -770,10 +756,10 @@ def _require(module: str, extra: str):
 ### 7.3 Fingerprint Lookup (`tasks/p7-03-fingerprint-lookup.md`)
 ### 7.4 AWS/GCP Pricing (`tasks/p7-04-aws-gcp-pricing.md`)
 
-## Phase 8: Production Hardening (⏳ Planned)
+## Phase 7: Production Hardening (⏳ Planned)
 - Caching, Error Handling, Observability (`tasks/p8-*.md`)
 
-## Phase 9: ML Cost Models (⏳ Planned)
+## Phase 8: ML Cost Models (⏳ Planned)
 - ML Models and Feature Extraction (`tasks/p9-*.md`)
 
 ## Post-MVP: Advanced Features
@@ -1002,10 +988,6 @@ Total Cost = Workload Design × Compute Strategy × Feature Overhead
 
 Query-level models degrade rapidly (often >50% error on complex queries) and struggle with 70% of Databricks workloads, which are PySpark-based and rarely expressible as clean SQL plans. Job-level models rely on stable recurring structures, using historical execution bounds and cluster definitions to achieve ±10% prediction accuracy at scale.
 
-## CI/CD and DABs Integration
-
-Parse `databricks.yml` inside CI/CD gates to block costly configuration mutations before submission, bridging the gap left by Databricks Native policies (which monitor but cannot hard-enforce per-job caps).
-
 # The "Developer's Best Friend" Programmatic UX
 
 A critical design shift for `dburnrate` is ensuring the Python API (`import dburnrate`) is actually useful to a Data Engineer, rather than just being architectural vanity. We explicitly reject the "string-only" API approach where users must copy-paste their 500-line queries into Python string literals to estimate them.
@@ -1015,8 +997,5 @@ Instead, the programmatic API is designed around three highly pragmatic workflow
 ### 1. The "Circuit Breaker" Pattern
 For pipelines that dynamically generate SQL or DataFrames based on runtime parameters (e.g., date ranges, tenant IDs), developers can use `dburnrate.estimate(sql)` right before `spark.sql(sql)`. If the estimated cost exceeds a budget, the pipeline can alert Slack and halt execution, preventing runaway costs from dynamic code.
 
-### 2. Cost-Aware Unit Testing
-Data engineers write `pytest` suites to verify their transformations. `dburnrate.estimate_file("src/jobs/daily_aggregation.py")` allows them to write tests for their *costs*. If a pull request modifies a file and causes the estimated cost to jump from $5 to $50, the CI/CD pipeline fails exactly like a broken unit test.
-
-### 3. Context-Aware "End of Notebook" Advisor
+### 2. Context-Aware "End of Notebook" Advisor
 This is the "Holy Grail" workflow. When a developer finishes testing a notebook interactively on an All-Purpose cluster, they simply run `dburnrate.advise_current_session()` in the final cell. The tool natively inspects the `SparkSession`, analyzes the metrics of the queries that *just ran*, and outputs a production compute recommendation (e.g., "Schedule this on a `DS3_v2` Jobs cluster to save 80%"). Zero copy-pasting of Job IDs required.
