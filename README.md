@@ -9,7 +9,7 @@
 
 Project job and query costs _before_ you run them.
 
-[![Tests](https://img.shields.io/badge/tests-263%20passing-brightgreen)](https://github.com/anomalyco/burnt/actions)
+[![Tests](https://img.shields.io/badge/tests-294%20passing-brightgreen)](https://github.com/anomalyco/burnt/actions)
 [![Python](https://img.shields.io/badge/python-3.12-blue)](https://www.python.org/)
 [![Ruff](https://img.shields.io/badge/lint-ruff-purple)](https://github.com/astral-sh/ruff)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue)](LICENSE)
@@ -52,7 +52,7 @@ uv run burnt estimate-job ./databricks.yml
 ```
 
 ### 2. SQL / PySpark Cost Estimation
-Estimate an individual query or file offline using static heuristics:
+Estimate an individual query or file using static or hybrid estimation:
 ```bash
 uv run burnt estimate "SELECT customer_id, SUM(amount) FROM orders GROUP BY 1"
 uv run burnt estimate ./notebooks/daily_revenue.sql
@@ -81,6 +81,24 @@ burnt.display()
 
 ---
 
+## Dual-Mode Runtime
+
+`burnt` automatically detects its execution context:
+
+| Context | Backend | Auth |
+|---------|---------|------|
+| Inside Databricks notebook | **SparkBackend** | Auto (SparkSession) |
+| External with DATABRICKS_HOST | **RestBackend** | OAuth/PAT via SDK |
+| Offline / CLI | Static only | None |
+
+```python
+import burnt
+# Auto-detects: in-cluster → SparkBackend, external → RestBackend, offline → static
+backend = burnt.runtime.auto_backend()
+```
+
+---
+
 ## Architecture & Enterprise Readiness
 
 `burnt` is built for enterprise Databricks environments:
@@ -100,6 +118,16 @@ burnt.display()
 | 5 | ⏳ Planned | Pre-Orchestration Job Cost Projection (DABs) |
 | 6 | ⏳ Planned | Query-Level Estimation Wiring |
 
+### What's Implemented
+
+- **RuntimeBackend** — Dual-mode execution (SparkBackend + RestBackend with OAuth)
+- **4-Tier Estimation Pipeline** — Static → Delta → EXPLAIN → Historical
+- **Anti-pattern detection** — SQL/PySpark linting via AST
+- **Static cost estimation** — Complexity-based heuristics
+- **EXPLAIN COST parser** — Parses Spark plans into structured data
+- **Delta metadata parser** — DESCRIBE DETAIL → table stats
+- **Query fingerprinting** — SHA-256 normalization for history lookup
+
 For a complete look at our architecture and research findings, see [`DESIGN.md`](DESIGN.md).
 
 ---
@@ -109,7 +137,7 @@ For a complete look at our architecture and research findings, see [`DESIGN.md`]
 We use `uv` for fast package management.
 
 ```bash
-uv run pytest -m unit -v          # 263 unit tests
+uv run pytest -m unit -v          # 294 unit tests
 uv run ruff check src/ tests/     # lint
 uv run ruff format src/ tests/    # format
 uv run bandit -c pyproject.toml -r src/  # security audit
