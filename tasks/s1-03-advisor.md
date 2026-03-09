@@ -20,17 +20,17 @@ created_by: planner
 
 ### Goal
 
-Implement the **flagship feature**: `dburnrate.advise_current_session()`. This is the "Developer's Best Friend" — a data engineer finishes testing a notebook on All-Purpose compute, runs one cell, and gets a production cluster recommendation with cost savings and Databricks API JSON.
+Implement the **flagship feature**: `burnt.advise_current_session()`. This is the "Developer's Best Friend" — a data engineer finishes testing a notebook on All-Purpose compute, runs one cell, and gets a production cluster recommendation with cost savings and Databricks API JSON.
 
-Also implement `dburnrate.advise(run_id=)` for the CLI workflow and the `dburnrate advise` CLI command.
+Also implement `burnt.advise(run_id=)` for the CLI workflow and the `burnt advise` CLI command.
 
 ### Files to Read
 
 ```
-src/dburnrate/__init__.py              # Current stub (raises NotImplementedError)
-src/dburnrate/estimators/whatif.py     # Existing scenario functions
-src/dburnrate/tables/queries.py        # Query history + fingerprinting
-src/dburnrate/cli/main.py             # Current CLI commands
+src/burnt/__init__.py              # Current stub (raises NotImplementedError)
+src/burnt/estimators/whatif.py     # Existing scenario functions
+src/burnt/tables/queries.py        # Query history + fingerprinting
+src/burnt/cli/main.py             # Current CLI commands
 docs/cli-workflows.md                  # Target UX for advise output
 docs/programmatic-workflows.md         # Target programmatic UX
 DESIGN.md § "Workflow 1"               # End-of-notebook advisor spec
@@ -39,17 +39,17 @@ DESIGN.md § "Workflow 1"               # End-of-notebook advisor spec
 ### Files to Create
 
 ```
-src/dburnrate/advisor/__init__.py
-src/dburnrate/advisor/session.py       # advise_current_session() + advise(run_id=)
-src/dburnrate/advisor/report.py        # AdvisoryReport model + display rendering
+src/burnt/advisor/__init__.py
+src/burnt/advisor/session.py       # advise_current_session() + advise(run_id=)
+src/burnt/advisor/report.py        # AdvisoryReport model + display rendering
 tests/unit/test_advisor.py
 ```
 
 ### Files to Modify
 
 ```
-src/dburnrate/__init__.py              # Replace stub with real implementation
-src/dburnrate/cli/main.py             # Add `advise` command
+src/burnt/__init__.py              # Replace stub with real implementation
+src/burnt/cli/main.py             # Add `advise` command
 ```
 
 ---
@@ -118,13 +118,13 @@ def advise(
 
 ```bash
 # Advise for a specific run (external or in-cluster)
-dburnrate advise --run-id 1234567890
+burnt advise --run-id 1234567890
 
 # Advise for current notebook (in-cluster only)
-dburnrate advise --self
+burnt advise --self
 
 # JSON output for CI/CD
-dburnrate advise --run-id 1234567890 --output json
+burnt advise --run-id 1234567890 --output json
 ```
 
 ### Display Format (from `docs/cli-workflows.md`)
@@ -154,14 +154,14 @@ Recommended Cluster (paste into Job definition):
 
 ## Acceptance Criteria
 
-- [ ] `dburnrate.advise_current_session()` works inside a mocked Databricks notebook context
-- [ ] `dburnrate.advise(run_id="...")` fetches metrics from system tables and returns AdvisoryReport
+- [ ] `burnt.advise_current_session()` works inside a mocked Databricks notebook context
+- [ ] `burnt.advise(run_id="...")` fetches metrics from system tables and returns AdvisoryReport
 - [ ] AdvisoryReport includes: baseline cost, Jobs/Serverless/Spot scenarios with savings %
 - [ ] AdvisoryReport includes: cluster recommendation with `to_api_json()` output
 - [ ] `advice.display()` renders the Compute Migration Analysis table (rich for CLI, displayHTML for notebook)
 - [ ] `advice.what_if()` chains into `WhatIfBuilder` (can be stub until s2-01)
-- [ ] CLI `dburnrate advise --run-id X` prints the table and JSON recommendation
-- [ ] CLI `dburnrate advise --self` detects current notebook path and advises
+- [ ] CLI `burnt advise --run-id X` prints the table and JSON recommendation
+- [ ] CLI `burnt advise --self` detects current notebook path and advises
 - [ ] Graceful error when called outside Databricks: "advise_current_session() requires a Databricks runtime"
 - [ ] `__init__.py` exports: `advise`, `advise_current_session`, `right_size`
 - [ ] Unit tests cover: report generation, display rendering, CLI integration, error cases
@@ -176,7 +176,7 @@ uv run ruff check src/ tests/
 uv run ruff format --check src/ tests/
 
 # Integration check (mocked)
-uv run dburnrate advise --run-id TEST12345  # Should print table with mocked data
+uv run burnt advise --run-id TEST12345  # Should print table with mocked data
 ```
 
 ---

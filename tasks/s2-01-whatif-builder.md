@@ -27,24 +27,24 @@ The original `legacy.py` had a working `WhatIfBuilder` with `.partition_by()`, `
 ### Files to Read
 
 ```
-src/dburnrate/estimators/whatif.py    # Current standalone functions (to be rewritten)
-src/dburnrate/core/models.py          # CostEstimate, ClusterConfig
-src/dburnrate/core/instances.py       # InstanceSpec, AzureInstanceCatalog (from s1-02)
+src/burnt/estimators/whatif.py    # Current standalone functions (to be rewritten)
+src/burnt/core/models.py          # CostEstimate, ClusterConfig
+src/burnt/core/instances.py       # InstanceSpec, AzureInstanceCatalog (from s1-02)
 DESIGN.md § "Fluent What-If Builder"  # Target API
 ```
 
 ### Files to Rewrite
 
 ```
-src/dburnrate/estimators/whatif.py     # Full rewrite: WhatIfBuilder class
+src/burnt/estimators/whatif.py     # Full rewrite: WhatIfBuilder class
 tests/unit/test_whatif.py              # Tests for builder pattern
 ```
 
 ### Files to Modify
 
 ```
-src/dburnrate/__init__.py              # Export what_if() convenience function
-src/dburnrate/core/models.py           # Add WhatIfResult model
+src/burnt/__init__.py              # Export what_if() convenience function
+src/burnt/core/models.py           # Add WhatIfResult model
 ```
 
 ---
@@ -108,7 +108,7 @@ class WhatIfResult(BaseModel):
 result = estimate.what_if().enable_photon().compare()
 
 # From raw parameters (convenience function at package level)
-result = dburnrate.what_if(dbu=10.0, sku="ALL_PURPOSE").migrate_to("JOBS_COMPUTE").compare()
+result = burnt.what_if(dbu=10.0, sku="ALL_PURPOSE").migrate_to("JOBS_COMPUTE").compare()
 ```
 
 This requires adding a `.what_if()` method to `CostEstimate`:
@@ -142,7 +142,7 @@ class CostEstimate(BaseModel):
 - [ ] `WhatIfResult.display()` renders side-by-side comparison
 - [ ] `WhatIfResult.summary()` returns one-line description (e.g., "Photon + downsize: $45 → $12 (-73%)")
 - [ ] `CostEstimate.what_if()` returns a `WhatIfBuilder` bound to the estimate
-- [ ] `dburnrate.what_if(dbu=, sku=)` convenience function works at package level
+- [ ] `burnt.what_if(dbu=, sku=)` convenience function works at package level
 - [ ] Modifications stack correctly (photon + downsize + spot = multiplicative)
 - [ ] Photon warns when speedup insufficient for break-even
 - [ ] Existing `apply_photon_scenario`, `apply_cluster_resize`, `apply_serverless_migration` preserved as internal helpers or deprecated

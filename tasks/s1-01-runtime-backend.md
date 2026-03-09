@@ -20,27 +20,27 @@ created_by: planner
 
 ### Goal
 
-Build the dual-mode runtime backend that lets dburnrate run natively inside Databricks notebooks (via `SparkSession`) or externally (via REST API). This is the #1 blocker for the flagship `advise_current_session()` feature.
+Build the dual-mode runtime backend that lets burnt run natively inside Databricks notebooks (via `SparkSession`) or externally (via REST API). This is the #1 blocker for the flagship `advise_current_session()` feature.
 
 Without this, the tool is limited to offline static estimation — it can't access system tables, EXPLAIN plans, or session metrics when running inside Databricks.
 
 ### Files to Read
 
 ```
-src/dburnrate/tables/connection.py    # Existing REST client (becomes RestBackend base)
-src/dburnrate/core/protocols.py       # Existing protocol classes
-src/dburnrate/core/config.py          # Settings with env vars
+src/burnt/tables/connection.py    # Existing REST client (becomes RestBackend base)
+src/burnt/core/protocols.py       # Existing protocol classes
+src/burnt/core/config.py          # Settings with env vars
 DESIGN.md § "RuntimeBackend"          # Architecture spec
 ```
 
 ### Files to Create
 
 ```
-src/dburnrate/runtime/__init__.py
-src/dburnrate/runtime/backend.py       # Backend protocol
-src/dburnrate/runtime/spark_backend.py # In-cluster SparkSession backend
-src/dburnrate/runtime/rest_backend.py  # External REST API backend (wraps existing DatabricksClient)
-src/dburnrate/runtime/auto.py          # auto_backend() detection
+src/burnt/runtime/__init__.py
+src/burnt/runtime/backend.py       # Backend protocol
+src/burnt/runtime/spark_backend.py # In-cluster SparkSession backend
+src/burnt/runtime/rest_backend.py  # External REST API backend (wraps existing DatabricksClient)
+src/burnt/runtime/auto.py          # auto_backend() detection
 tests/unit/test_runtime_backend.py
 ```
 

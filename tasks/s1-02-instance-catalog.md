@@ -27,8 +27,8 @@ The original `legacy.py` had a working 86-instance catalog with `to_api_json()` 
 ### Files to Read
 
 ```
-src/dburnrate/core/models.py          # Current ClusterConfig model (needs extension)
-src/dburnrate/core/pricing.py         # DBU rate lookups
+src/burnt/core/models.py          # Current ClusterConfig model (needs extension)
+src/burnt/core/pricing.py         # DBU rate lookups
 DESIGN.md § "Azure Instance Catalog"  # Architecture spec
 DESIGN.md § "Right-Sizing Logic"      # Sizing heuristics
 ```
@@ -36,14 +36,14 @@ DESIGN.md § "Right-Sizing Logic"      # Sizing heuristics
 ### Files to Create
 
 ```
-src/dburnrate/core/instances.py        # AzureInstanceCatalog + right-sizing logic
+src/burnt/core/instances.py        # AzureInstanceCatalog + right-sizing logic
 tests/unit/test_instances.py
 ```
 
 ### Files to Modify
 
 ```
-src/dburnrate/core/models.py           # Extend ClusterConfig, add ClusterRecommendation, InstanceSpec
+src/burnt/core/models.py           # Extend ClusterConfig, add ClusterRecommendation, InstanceSpec
 ```
 
 ---
