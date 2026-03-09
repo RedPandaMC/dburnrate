@@ -40,4 +40,8 @@ class DatabricksConnectionError(BurntError):
 class DatabricksQueryError(BurntError):
     """Raised when a SQL statement execution fails on Databricks."""
 
+
+class NotAvailableError(BurntError):
+    """Raised when a feature is not available in the current execution context."""
+
     pass

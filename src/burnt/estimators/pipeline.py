@@ -15,13 +15,13 @@ from ..core.models import (  # noqa: TC001
 from ..parsers.delta import parse_describe_detail
 from ..parsers.explain import parse_explain_cost
 from ..parsers.sql import extract_tables
-from ..tables.connection import DatabricksClient
 from ..tables.queries import fingerprint_sql, get_query_history
 from .hybrid import HybridEstimator
 from .static import CostEstimator
 
 if TYPE_CHECKING:
     from ..core.config import Settings
+    from ..runtime import Backend
 
 logger = logging.getLogger(__name__)
 
@@ -36,13 +36,14 @@ class EstimationPipeline:
     - Tier 4: Historical query fingerprints
 
     Args:
-        backend: Optional DatabricksClient. If None, runs in offline mode (Tier 1 only).
+        backend: Optional Backend (SparkBackend or RestBackend).
+                 If None, runs in offline mode (Tier 1 only).
         warehouse_id: SQL warehouse ID for EXPLAIN COST and query history.
     """
 
     def __init__(
         self,
-        backend: DatabricksClient | None = None,
+        backend: Backend | None = None,
         warehouse_id: str | None = None,
     ) -> None:
         """Initialize the pipeline with optional backend."""
@@ -145,20 +146,16 @@ class EstimationPipeline:
 def create_pipeline(
     settings: Settings | None = None, warehouse_id: str | None = None
 ) -> EstimationPipeline:
-    """Factory function to create an EstimationPipeline with Databricks client.
+    """Factory function to create an EstimationPipeline with backend auto-detection.
 
     Args:
-        settings: Application settings. If None, creates offline pipeline.
+        settings: Application settings. If None, auto-detects execution context.
         warehouse_id: SQL warehouse ID. Required for Tiers 2-4.
 
     Returns:
         EstimationPipeline instance
     """
-    if settings and settings.workspace_url and settings.token and warehouse_id:
-        from ..core.config import Settings as ConfigSettings
+    from ..runtime import auto_backend
 
-        settings = settings or ConfigSettings()
-        backend = DatabricksClient(settings)
-        return EstimationPipeline(backend=backend, warehouse_id=warehouse_id)
-
-    return EstimationPipeline(backend=None, warehouse_id=None)
+    backend = auto_backend()
+    return EstimationPipeline(backend=backend, warehouse_id=warehouse_id)

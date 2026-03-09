@@ -39,11 +39,10 @@ class TestEstimationPipelineOffline:
 
 
 class TestEstimationPipelineWithBackend:
-    @patch("burnt.estimators.pipeline.DatabricksClient")
-    def test_tier_2_delta_metadata(self, mock_client_class, cluster):
+    def test_tier_2_delta_metadata(self, cluster):
         """Pipeline attempts Delta metadata retrieval."""
-        mock_client = MagicMock()
-        mock_client.execute_sql.return_value = [
+        mock_backend = MagicMock()
+        mock_backend.execute_sql.return_value = [
             {
                 "location": "s3://bucket/orders",
                 "sizeInBytes": "1000000000",
@@ -51,21 +50,19 @@ class TestEstimationPipelineWithBackend:
                 "partitionColumns": "[]",
             }
         ]
-        mock_client_class.return_value = mock_client
 
-        pipeline = EstimationPipeline(backend=mock_client, warehouse_id="abc123")
+        pipeline = EstimationPipeline(backend=mock_backend, warehouse_id="abc123")
         result = pipeline.estimate(
             "SELECT * FROM orders JOIN customers ON orders.id = customers.id", cluster
         )
 
         assert result.estimated_dbu > 0
-        mock_client.execute_sql.assert_called()
+        mock_backend.execute_sql.assert_called()
 
-    @patch("burnt.estimators.pipeline.DatabricksClient")
-    def test_tier_3_explain_cost(self, mock_client_class, cluster):
+    def test_tier_3_explain_cost(self, cluster):
         """Pipeline attempts EXPLAIN COST retrieval."""
-        mock_client = MagicMock()
-        mock_client.execute_sql.side_effect = [
+        mock_backend = MagicMock()
+        mock_backend.execute_sql.side_effect = [
             [
                 {
                     "location": "s3://bucket/orders",
@@ -76,23 +73,20 @@ class TestEstimationPipelineWithBackend:
             ],
             [{"plan": "== Physical Plan ==\nScan"}],
         ]
-        mock_client_class.return_value = mock_client
 
-        pipeline = EstimationPipeline(backend=mock_client, warehouse_id="abc123")
+        pipeline = EstimationPipeline(backend=mock_backend, warehouse_id="abc123")
         result = pipeline.estimate(
             "SELECT * FROM orders JOIN customers ON orders.id = customers.id", cluster
         )
 
         assert result.estimated_dbu > 0
 
-    @patch("burnt.estimators.pipeline.DatabricksClient")
-    def test_graceful_tier_failure(self, mock_client_class, cluster):
+    def test_graceful_tier_failure(self, cluster):
         """Pipeline continues when a tier fails."""
-        mock_client = MagicMock()
-        mock_client.execute_sql.side_effect = Exception("Connection failed")
-        mock_client_class.return_value = mock_client
+        mock_backend = MagicMock()
+        mock_backend.execute_sql.side_effect = Exception("Connection failed")
 
-        pipeline = EstimationPipeline(backend=mock_client, warehouse_id="abc123")
+        pipeline = EstimationPipeline(backend=mock_backend, warehouse_id="abc123")
         result = pipeline.estimate(
             "SELECT * FROM orders JOIN customers ON orders.id = customers.id", cluster
         )
@@ -107,17 +101,17 @@ class TestCreatePipeline:
         assert pipeline._backend is None
         assert pipeline._warehouse_id is None
 
-    @patch("burnt.estimators.pipeline.DatabricksClient")
-    def test_create_pipeline_with_credentials(self, mock_client_class):
-        """Factory creates backend-connected pipeline when credentials provided."""
-        from burnt.core.config import Settings
+    @patch("burnt.runtime.auto._create_rest_backend")
+    def test_create_pipeline_with_credentials(self, mock_create_backend):
+        """Factory creates backend-connected pipeline when DATABRICKS_HOST is set."""
+        mock_backend = MagicMock()
+        mock_create_backend.return_value = mock_backend
 
-        settings = Settings()
-        settings.workspace_url = "https://test.cloud.databricks.com"
-        settings.token = "test_token"
-
-        pipeline = create_pipeline(settings=settings, warehouse_id="abc123")
+        with patch.dict(
+            "os.environ", {"DATABRICKS_HOST": "https://test.cloud.databricks.com"}
+        ):
+            pipeline = create_pipeline(warehouse_id="abc123")
 
         assert pipeline._backend is not None
         assert pipeline._warehouse_id == "abc123"
-        mock_client_class.assert_called_once()
+        mock_create_backend.assert_called_once()

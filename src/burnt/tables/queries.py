@@ -7,7 +7,7 @@ import re
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from .connection import DatabricksClient
+    from ..runtime import Backend
 
 from ..core.models import QueryRecord
 from .connection import _sanitize_id
@@ -63,7 +63,7 @@ def fingerprint_sql(sql: str) -> str:
 
 
 def get_query_history(
-    client: DatabricksClient, warehouse_id: str, days: int = 30
+    client: Backend, warehouse_id: str, days: int = 30
 ) -> list[QueryRecord]:
     """Fetch query execution history for the past N days from system.query.history.
 
@@ -83,7 +83,7 @@ def get_query_history(
 
 
 def find_similar_queries(
-    client: DatabricksClient,
+    client: Backend,
     sql_fingerprint: str,
     warehouse_id: str,
     limit: int = 10,
