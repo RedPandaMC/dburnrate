@@ -22,7 +22,7 @@ created_by: planner
 
 Rewrite `estimators/whatif.py` from standalone functions into a fluent `WhatIfBuilder` class with method chaining. This is the "cuts like butter" UX — users chain modifications naturally and get a before/after comparison.
 
-The original `legacy.py` had a working `WhatIfBuilder` with `.partition_by()`, `.z_order_by()`, `.broadcast()`, `.enable_photon()`, and `.compare()`. This task restores that pattern in the new architecture.
+The original `legacy.py` had a working `WhatIfBuilder` with `.broadcast()`, `.enable_photon()`, `use_pool`, `.compare()` and other what if scenario's for cluster configs. This task restores that pattern in the new architecture.
 
 ### Files to Read
 
@@ -70,11 +70,7 @@ class WhatIfBuilder:
     def upsize_to(self, instance_type: str, num_workers: int | None = None) -> "WhatIfBuilder": ...
     def use_spot(self, fallback: bool = True) -> "WhatIfBuilder": ...
     def set_workers(self, num_workers: int) -> "WhatIfBuilder": ...
-
-    # Data layout optimizations
-    def partition_by(self, column: str, cardinality: int = 365) -> "WhatIfBuilder": ...
-    def z_order_by(self, columns: list[str]) -> "WhatIfBuilder": ...
-    def enable_liquid_clustering(self) -> "WhatIfBuilder": ...
+    def use_pool(self, ...) -> "WhatIfBuilder":
 
     # Output
     def compare(self) -> WhatIfResult: ...
@@ -128,8 +124,7 @@ class CostEstimate(BaseModel):
 - **Photon:** Apply `2.5× DBU multiplier / speedup_factor` per operation type
 - **Downsize:** Scale by `new_dbu_per_hour / old_dbu_per_hour` ratio, add VM cost delta
 - **Spot:** Apply 60-80% VM cost reduction (DBU unchanged)
-- **Partitioning:** `(1 - pruned_pct) × scan_cost` where `pruned_pct = 1 - (1/cardinality)`
-- **Z-ORDER:** 2-5× speedup for filtered queries with matching predicates
+- **Pool:** Apply a X% VM cost reduction (DBU unchanged) -> research this
 - **Modifications stack multiplicatively**
 
 ---
