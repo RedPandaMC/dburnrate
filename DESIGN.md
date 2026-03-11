@@ -215,7 +215,7 @@ flowchart TB
         
         AD[Compute Migration Analysis]
         
-        COST[Cost Comparison Table<br/>All-Purpose: $45.12<br/>Jobs Compute: $18.25 (-60%)<br/>Serverless: $28.50 (-37%)]
+        COST[Cost Comparison Table<br/>All-Purpose: $45.12<br/>Jobs Compute: $18.25 minus 60%<br/>Serverless: $28.50 minus 37%]
         
         TIP[💡 Peak memory 14%<br/>Downsize DS4_v2 → DS3_v2<br/>for additional 50% savings]
         
