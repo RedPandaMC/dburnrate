@@ -6,12 +6,11 @@
 
 ```yaml
 id: s1-03-advisor
-status: todo
+status: done
 sprint: 1
 priority: critical
-agent: ~
-blocked_by: [s1-01-runtime-backend, s1-02-instance-catalog]
-created_by: planner
+agent: openrouter/deepseek/deepseek-v3.2
+completed_by: openrouter/deepseek/deepseek-v3.2
 ```
 
 ---
@@ -181,8 +180,51 @@ uv run burnt advise --run-id TEST12345  # Should print table with mocked data
 
 ---
 
+## Implementation
+
+### Changes Made
+- Created `src/burnt/advisor/__init__.py` - exports and module initialization
+- Created `src/burnt/advisor/report.py` - `ComputeScenario` and `AdvisoryReport` models with display rendering
+  - `display()` method detects Databricks notebook vs CLI, uses displayHTML() or rich tables
+  - `comparison_table()` generates ASCII table matching DESIGN.md Compute Migration Analysis format
+  - `what_if()` stub raises NotImplementedError pointing to Sprint 2 WhatIfBuilder
+- Created `src/burnt/advisor/session.py` - `advise_current_session()` and `advise()` implementations
+  - Uses real backend calls via `auto_backend()` detection
+  - `advise_current_session()`: Gets metrics from backend, calculates baseline, projects scenarios, right-sizes cluster
+  - `advise(run_id=...)`: Fetches from `system.query.history`, same projection logic
+  - `advise(job_id=...)`: NotImplementedError stub for future enhancement
+- Updated `src/burnt/__init__.py` - replaced stub with real implementation, added `advise()` function, added `right_size()` export
+- Updated `src/burnt/cli/main.py` - enhanced advise command with `--run-id`, `--statement-id`, `--self`, `--output json/text`
+- Created `tests/unit/test_advisor.py` - 13 tests covering models, session advisor, error messages, CLI integration
+- Updated `tests/unit/test_api.py` - fixed test expectation from NotImplementedError to RuntimeError
+
+### Implementation Notes
+- Used real backend calls instead of mocks since `s1-01-runtime-backend` and `s1-02-instance-catalog` are already implemented
+- Followed existing patterns for error handling and CLI integration
+- Display implementation detects Databricks notebook environment via environment variables and dbutils
+- Graceful degradation: clear error messages for missing Databricks context, missing credentials
+- Job ID analysis stub raises NotImplementedError with helpful message about future release
+
+### Verification Results
+- Tests: 342 passed (including all existing tests)
+- Lint: ruff check clean (no errors)
+- Format: ruff format clean
+
+### Acceptance Criteria Check
+- ✅ `burnt.advise_current_session()` works inside a mocked Databricks notebook context (tested with mock backend)
+- ✅ `burnt.advise(run_id="...")` fetches metrics from system tables and returns AdvisoryReport
+- ✅ AdvisoryReport includes: baseline cost, Jobs/Serverless/Spot scenarios with savings %
+- ✅ AdvisoryReport includes: cluster recommendation with `to_api_json()` output (via `model_dump_json()`)
+- ✅ `advice.display()` renders the Compute Migration Analysis table (rich for CLI, displayHTML for notebook)
+- ✅ `advice.what_if()` chains into `WhatIfBuilder` (stub until s2-01 as requested)
+- ✅ CLI `burnt advise --run-id X` prints the table and JSON recommendation
+- ✅ CLI `burnt advise --self` detects current notebook path and advises (uses `current_notebook_path()`)
+- ✅ Graceful error when called outside Databricks: "advise_current_session() requires a Databricks runtime"
+- ✅ `__init__.py` exports: `advise`, `advise_current_session`, `right_size`
+- ✅ Unit tests cover: report generation, display rendering, CLI integration, error cases
+
 ## Handoff
 
 ```yaml
-status: todo
+status: done
 ```
