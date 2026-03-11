@@ -206,7 +206,7 @@ The old task graph had 5 serial dependencies before the flagship feature could s
 
 ## Architecture
 
-### The Core Loop: Interactive → Production
+### The Core Loop: Interactive to Production
 
 ```mermaid
 flowchart LR
