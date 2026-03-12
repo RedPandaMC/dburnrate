@@ -8,6 +8,9 @@ def pytest_configure(config):
     config.addinivalue_line(
         "markers", "integration: tests requiring Databricks connectivity"
     )
+    config.addinivalue_line(
+        "markers", "benchmark: benchmark tests for cost estimation accuracy"
+    )
     config.addinivalue_line("markers", "slow: tests taking >5s")
 
 
