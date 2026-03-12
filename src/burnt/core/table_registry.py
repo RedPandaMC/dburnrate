@@ -140,3 +140,46 @@ class TableRegistry:
             predictive_optimization=self.predictive_optimization,
             column_overrides=new_overrides,
         )
+
+    def to_sqlite_table_name(self, table_path: str) -> str:
+        """Convert a table path to SQLite-safe table name.
+
+        Replaces dots with underscores for SQLite compatibility.
+
+        Args:
+            table_path: Full table path (e.g., "system.billing.usage")
+
+        Returns:
+            SQLite-safe table name (e.g., "system_billing_usage")
+        """
+        return table_path.replace(".", "_")
+
+    def format_sql(self, sql: str) -> str:
+        """Format SQL by replacing default table names with configured paths.
+
+        This is a simple string replacement. For complex SQL with table
+        aliases or subqueries, consider using a proper SQL parser.
+
+        Args:
+            sql: SQL statement with default table names
+
+        Returns:
+            SQL with table paths replaced according to registry
+        """
+        result = sql
+        replacements = {
+            "system.billing.usage": self.billing_usage,
+            "system.billing.list_prices": self.billing_list_prices,
+            "system.query.history": self.query_history,
+            "system.compute.node_types": self.compute_node_types,
+            "system.compute.clusters": self.compute_clusters,
+            "system.compute.node_timeline": self.compute_node_timeline,
+            "system.lakeflow.jobs": self.lakeflow_jobs,
+            "system.lakeflow.job_run_timeline": self.lakeflow_job_run_timeline,
+            "system.storage.predictive_optimization_operations_history": self.predictive_optimization,
+        }
+
+        for default_path, configured_path in replacements.items():
+            result = result.replace(default_path, configured_path)
+
+        return result
